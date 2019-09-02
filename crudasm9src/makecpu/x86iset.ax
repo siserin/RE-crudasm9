@@ -1,0 +1,2108 @@
+# x86iset.ax - Copyright (C) 2010-2012 Willow Schlanger. All rights reserved.
+# This defines x86 16-bit, 32-bit, and 64-bit instruction syntax and semantics.
+
+/*
+
+enum
+{
+	crudasm_intel_argtype_void = 0,	// 'void' must be 0
+	crudasm_intel_argtype_imm,	// (organizer)
+		crudasm_intel_argtype_imm_implict = crudasm_intel_argtype_imm,
+		crudasm_intel_argtype_imm_1st,
+		crudasm_intel_argtype_imm_2nd,
+		crudasm_intel_argtype_imm_both,
+	crudasm_intel_argtype_imm__end = crudasm_intel_argtype_imm_both,
+	crudasm_intel_argtype_mem,	// (organizer)
+		crudasm_intel_argtype_mem_fulldisp = crudasm_intel_argtype_mem,
+		crudasm_intel_argtype_mem_ea,
+			crudasm_intel_argtype_mem_ea_lim,	// for LGDT/SGDT/LIDT/SIDT and related instructions
+			crudasm_intel_argtype_mem_ea_dbl,	// for BOUND and cousins
+			crudasm_intel_argtype_mem_ea_seg,	// for LES/LSS/LDS/LFS/LGS and cousins
+			crudasm_intel_argtype_mem_ea_eal,	// size = asz; for lea and cousins
+			crudasm_intel_argtype_mem_ea_eai,	// for INVLPG and cousins
+			crudasm_intel_argtype_mem_ea_fxs,	// for fxsave and cousins
+		crudasm_intel_argtype_mem_ea__end = crudasm_intel_argtype_mem_ea_fxs,
+		crudasm_intel_argtype_mem_implict,	// (organizer)
+			crudasm_intel_argtype_mem_implict_sts = crudasm_intel_argtype_mem_implict,
+			crudasm_intel_argtype_mem_implict_std,
+			crudasm_intel_argtype_mem_implict_xls,
+		crudasm_intel_argtype_mem_implict__end = crudasm_intel_argtype_mem_implict_xls,
+	crudasm_intel_argtype_mem__end = crudasm_intel_argtype_mem_implict__end,
+	crudasm_intel_argtype_reg,	// (organizer)
+		crudasm_intel_argtype_reg_gr = crudasm_intel_argtype_reg,
+		crudasm_intel_argtype_reg_xmm,
+		crudasm_intel_argtype_reg_mmx,
+		crudasm_intel_argtype_reg_sr,
+		crudasm_intel_argtype_reg_dr,
+		crudasm_intel_argtype_reg_cr,
+		crudasm_intel_argtype_reg_st,
+	crudasm_intel_argtype_reg__end = crudasm_intel_argtype_reg_st
+};
+
+enum
+{
+	crudasm_intel_argsize_void = 0,
+	crudasm_intel_argsize_B1 = 1,
+	crudasm_intel_argsize_B2 = 2,
+	crudasm_intel_argsize_B4 = 4,
+	crudasm_intel_argsize_B8 = 8,
+	crudasm_intel_argsize_B16 = 16,
+	crudasm_intel_argsize_B32 = 32,
+	crudasm_intel_argsize_B10 = 10,
+	crudasm_intel_argsize_size_osz = -1,			// operand size
+	crudasm_intel_argsize_size_asz = -2,			// address size
+	crudasm_intel_argsize_size_osz_ptr = -3,		// 64 bits in 64 bit mode regardless of rex; else 32 bits
+	crudasm_intel_argsize_size_osz_max32 = -4,		// 16 or 32 bits only (ignore rex.w for this argument)
+	crudasm_intel_argsize_size_osz_min32 = -5,		// 32 or 64 bits only (if o16, use 32 bits)
+	crudasm_intel_argsize_size_osz_min64 = -6,		// 64 bits (128 bits if rex.w is used)
+	crudasm_intel_argsize_size_osz_seg = -7,		// 16 bits unless rex.w is used, then 64 bits (mov dest,sreg [intel manual])
+	crudasm_intel_argsize_size_osz_64in64 = -8		// osz, but ALWAYS 64 bits in 64 bit mode
+};
+
+---
+
+flags : lockable, lock_always, repable, repcont, ctrlxfer
+tags  :
+ asm_skip
+	don't generate this encoding when assembling
+ sx_byte
+ 	osz-sized immediates are encoded as a byte.
+ 	if used with imm64_sx32 then
+ 		o16: encoded byte is sign-extended to 16bits
+ 		o32: encoded byte is sign-extended to 32bits
+ 		o64: encoded byte is sign-extended to 64bits
+ 			but only low 32bits are stored in icode
+ 	if not used with imm64_sx32 then
+ 		o16: encoded byte is sign-extended to 16bits
+ 		o32: encoded byte is sign-extended to 32bits
+ 		o64: ???
+ 	NOTE: at present, sx_byte is always used with imm64_sx32.
+ imm64_sx32
+	if an immediate has osz size and we have o64, then
+		fetch 32 bits (or 8 bits if sx_byte is used)
+		and store in icode. on read from icode, sign-extend
+		the immediate to 64bits from 32bits.
+ no_rex_w
+ 	even if rex.w is used, pretend rex.w = 0.
+ 	used by ins/outs.
+ imm64_disp
+ 	if o64, disp is used together with imm in icode.
+ 	not compatible with sx_byte.
+ 	if an imm64 arg exists, upper 32bits stored in disp.
+ 	if a disp64 arg (memdisp) exists, upper 32bits of disp stored in imm.
+ is64
+ 	in 64bit mode (dsz is 64 bits), use o64 unless 0x66 is used then, use o16.
+ 	used by the various push/pop instructions.
+ no64
+ 	invalid in 64bit mode (used by single-byte INC/DEC, etc.)
+ like_movsxd
+ like_arpl
+ 	movsxd & arpl share the same opcode.
+ reg_base
+ 	low 3 bits of 'reg' comes from low 3 bits of basecode, not reg/op
+ has_cc
+ 	low 4 bits of basecode is a condition code
+ relative
+	imm's with value == 0xff are relative (used for ctrl xfers)
+ reg_rm
+ 	low 3 bits of 'reg' comes from low 3 bits of 1st modr/m byte, not reg/op
+ 	if used, bit 4 comes from rex_b.
+ etag_asm_66_if_o16
+ 	when assembling or generating code, if target is 16 bits, then add a 0x66.
+ 	this assures that we don't run into undefined behavior.
+
+---
+
+(insn <internal insn name> <assembly language name (string)> <argument-def>
+	{<items>}
+)
+
+<argument-def> is e.g. ((B1 arg0) (B1 arg1)). This indicates there are two arguments,
+both of whose size must be a byte. ((P arg0) (P arg1)) means there are two arguments,
+and they can have any size (to be indicated by the encoding), but the sizes must match.
+
+*/
+
+(return
+
+(debug "begin load x86 instruction set")
+
+(asgn x86-iset
+(loadcpu (
+
+#==============================================================================================================================
+# CPU Mode Definitions
+#==============================================================================================================================
+
+# The x86 cpu supports 6 major operating modes. compat mode is pmode64 with cs.L = 0.
+(set-cpu-modes real protected vm86 smm pmode64 compat)
+
+# For the purpose of many instructions, real, smm, and vm86 modes behave the same.
+# Note that some instructions are "sensitive" to rflags.vm, however.
+(define-mode-set rmode (real smm vm86))
+
+# For the purpose of many instructions, protected and compatibility modes are the same.
+(define-mode-set pmode (protected compat))
+
+# Long mode is pmode64 or compat.
+(define-mode-set long (pmode64 compat))
+
+# Legacy mode is any mode besides long mode.
+(define-mode-set legacy (real protected vm86 smm))
+
+# Some instructions are valid in all modes except pmode64 mode. After decoding, we may have a splitter
+# that splits by mode (used for instance by ARPL / MOVSXD).
+(define-mode-set no64 (real protected vm86 smm compat))
+
+# Some instructions are valid in all modes.
+(define-mode-set all (real protected vm86 smm pmode64 compat))
+
+#==============================================================================================================================
+# Instruction Definitions (With Semantics)
+#==============================================================================================================================
+
+# This instruction is valid only when CPL = 0. Thus it is never valid in vm86 mode, where CPL is 3.
+(insn insn_hlt "hlt" ()
+	(valid-modes TODO)
+	(flags itag_ctrlxfer)
+	(code () "f4" ())
+	(emu advanced
+		(assert (_zero? CPL) 0 13 0)	# raise #GP(0) if CPL != 0
+		(asgn CTRL_HALT 1)		# indicate we're entering a HALTed state
+	)
+)
+
+#==============================================================================================================================
+# Instructions Without Semantics (yet)
+#==============================================================================================================================
+
+(insn insn_aaa "aaa" ()
+	(valid-modes TODO)
+	(code (etag_no64) "37" ())
+)
+
+(insn insn__aad "_aad" ((B1 arg0))
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_no64) "d5" ((imm_1st B1)))
+)
+
+(insn insn__aam "_aam" ((B1 arg0))
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_no64) "d4" ((imm_1st B1)))
+)
+
+(insn insn_aas "aas" ()
+	(valid-modes TODO)
+	(code (etag_no64) "3f" ())
+)
+
+(insn insn_das "das" ()
+	(valid-modes TODO)
+	(code (etag_no64) "2f" ())
+)
+
+(insn insn_daa "daa" ()
+	(valid-modes TODO)
+	(code (etag_no64) "27" ())
+)
+
+# --- arithmetic instructions ---
+
+(insn insn_adc "adc" ((P arg0) (P arg1))
+	(flags itag_lockable)
+	(valid-modes TODO)
+	(code () "80 /2" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_asm_skip) "82 /2" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_imm64_sx32) "81 /2" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+	(code (etag_imm64_sx32 etag_sx_byte) "83 /2" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+	(code () "10 /r" ((reg_gr B1 reg_or_mem) (reg_gr B1)))
+	(code () "12 /r" ((reg_gr B1) (reg_gr B1 reg_or_mem)))
+	(code () "11 /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz)))
+	(code () "13 /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+	(code () "14" ((reg_gr B1 0x0) (imm_1st B1)))
+	(code (etag_imm64_sx32) "15" ((reg_gr size_osz 0x0) (imm_1st size_osz)))
+)
+
+(insn insn_add "add" ((P arg0) (P arg1))
+	(flags itag_lockable)
+	(valid-modes TODO)
+	(code () "80 /0" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_asm_skip) "82 /0" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_imm64_sx32) "81 /0" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+	(code (etag_imm64_sx32 etag_sx_byte) "83 /0" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+	(code () "00 /r" ((reg_gr B1 reg_or_mem) (reg_gr B1)))
+	(code () "02 /r" ((reg_gr B1) (reg_gr B1 reg_or_mem)))
+	(code () "01 /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz)))
+	(code () "03 /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+	(code () "04" ((reg_gr B1 0x0) (imm_1st B1)))
+	(code (etag_imm64_sx32) "05" ((reg_gr size_osz 0x0) (imm_1st size_osz)))
+)
+
+(insn insn_or "or" ((P arg0) (P arg1))
+	(flags itag_lockable)
+	(valid-modes TODO)
+	(code () "80 /1" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_asm_skip) "82 /1" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_imm64_sx32) "81 /1" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+	(code (etag_imm64_sx32 etag_sx_byte) "83 /1" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+	(code () "08 /r" ((reg_gr B1 reg_or_mem) (reg_gr B1)))
+	(code () "0a /r" ((reg_gr B1) (reg_gr B1 reg_or_mem)))
+	(code () "09 /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz)))
+	(code () "0b /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+	(code () "0c" ((reg_gr B1 0x0) (imm_1st B1)))
+	(code (etag_imm64_sx32) "0d" ((reg_gr size_osz 0x0) (imm_1st size_osz)))
+)
+
+(insn insn_sbb "sbb" ((P arg0) (P arg1))
+	(flags itag_lockable)
+	(valid-modes TODO)
+	(code () "80 /3" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_asm_skip) "82 /3" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_imm64_sx32) "81 /3" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+	(code (etag_imm64_sx32 etag_sx_byte) "83 /3" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+	(code () "18 /r" ((reg_gr B1 reg_or_mem) (reg_gr B1)))
+	(code () "1a /r" ((reg_gr B1) (reg_gr B1 reg_or_mem)))
+	(code () "19 /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz)))
+	(code () "1b /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+	(code () "1c" ((reg_gr B1 0x0) (imm_1st B1)))
+	(code (etag_imm64_sx32) "1d" ((reg_gr size_osz 0x0) (imm_1st size_osz)))
+)
+
+(insn insn_and "and" ((P arg0) (P arg1))
+	(flags itag_lockable)
+	(valid-modes TODO)
+	(code () "80 /4" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_asm_skip) "82 /4" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_imm64_sx32) "81 /4" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+	(code (etag_imm64_sx32 etag_sx_byte) "83 /4" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+	(code () "20 /r" ((reg_gr B1 reg_or_mem) (reg_gr B1)))
+	(code () "22 /r" ((reg_gr B1) (reg_gr B1 reg_or_mem)))
+	(code () "21 /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz)))
+	(code () "23 /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+	(code () "24" ((reg_gr B1 0x0) (imm_1st B1)))
+	(code (etag_imm64_sx32) "25" ((reg_gr size_osz 0x0) (imm_1st size_osz)))
+)
+
+(insn insn_sub "sub" ((P arg0) (P arg1))
+	(flags itag_lockable)
+	(valid-modes TODO)
+	(code () "80 /5" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_asm_skip) "82 /5" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_imm64_sx32) "81 /5" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+	(code (etag_imm64_sx32 etag_sx_byte) "83 /5" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+	(code () "28 /r" ((reg_gr B1 reg_or_mem) (reg_gr B1)))
+	(code () "2a /r" ((reg_gr B1) (reg_gr B1 reg_or_mem)))
+	(code () "29 /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz)))
+	(code () "2b /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+	(code () "2c" ((reg_gr B1 0x0) (imm_1st B1)))
+	(code (etag_imm64_sx32) "2d" ((reg_gr size_osz 0x0) (imm_1st size_osz)))
+)
+
+(insn insn_xor "xor" ((P arg0) (P arg1))
+	(flags itag_lockable)
+	(valid-modes TODO)
+	(code () "80 /6" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_asm_skip) "82 /6" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_imm64_sx32) "81 /6" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+	(code (etag_imm64_sx32 etag_sx_byte) "83 /6" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+	(code () "30 /r" ((reg_gr B1 reg_or_mem) (reg_gr B1)))
+	(code () "32 /r" ((reg_gr B1) (reg_gr B1 reg_or_mem)))
+	(code () "31 /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz)))
+	(code () "33 /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+	(code () "34" ((reg_gr B1 0x0) (imm_1st B1)))
+	(code (etag_imm64_sx32) "35" ((reg_gr size_osz 0x0) (imm_1st size_osz)))
+)
+
+(insn insn_cmp "cmp" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code () "80 /7" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_asm_skip) "82 /7" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_imm64_sx32) "81 /7" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+	(code (etag_imm64_sx32 etag_sx_byte) "83 /7" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+	(code () "38 /r" ((reg_gr B1 reg_or_mem) (reg_gr B1)))
+	(code () "3a /r" ((reg_gr B1) (reg_gr B1 reg_or_mem)))
+	(code () "39 /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz)))
+	(code () "3b /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+	(code () "3c" ((reg_gr B1 0x0) (imm_1st B1)))
+	(code (etag_imm64_sx32) "3d" ((reg_gr size_osz 0x0) (imm_1st size_osz)))
+)
+
+# --- shift and rotate instructions ---
+#
+# interestingly, these are not lockable.
+# 1st 4 insn's : sf, zf, af, pf unaffected.
+# of : affected only for single-bit rotates.
+# cf : last bit shifted out
+
+(insn insn_rol "rol" ((P arg0) (B1 arg1))
+	(valid-modes TODO)
+	(code () "c0 /0" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code () "c1 /0" ((reg_gr size_osz reg_or_mem) (imm_1st B1)))
+	(code () "d0 /0" ((reg_gr B1 reg_or_mem) (imm_implict B1 0x1)))
+	(code () "d1 /0" ((reg_gr size_osz reg_or_mem) (imm_implict B1 0x1)))
+	(code () "d2 /0" ((reg_gr B1 reg_or_mem) (reg_gr B1 0x1)))
+	(code () "d3 /0" ((reg_gr size_osz reg_or_mem) (reg_gr B1 0x1)))
+)
+
+(insn insn_ror "ror" ((P arg0) (B1 arg1))
+	(valid-modes TODO)
+	(code () "c0 /1" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code () "c1 /1" ((reg_gr size_osz reg_or_mem) (imm_1st B1)))
+	(code () "d0 /1" ((reg_gr B1 reg_or_mem) (imm_implict B1 0x1)))
+	(code () "d1 /1" ((reg_gr size_osz reg_or_mem) (imm_implict B1 0x1)))
+	(code () "d2 /1" ((reg_gr B1 reg_or_mem) (reg_gr B1 0x1)))
+	(code () "d3 /1" ((reg_gr size_osz reg_or_mem) (reg_gr B1 0x1)))
+)
+
+(insn insn_rcl "rcl" ((P arg0) (B1 arg1))
+	(valid-modes TODO)
+	(code () "c0 /2" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code () "c1 /2" ((reg_gr size_osz reg_or_mem) (imm_1st B1)))
+	(code () "d0 /2" ((reg_gr B1 reg_or_mem) (imm_implict B1 0x1)))
+	(code () "d1 /2" ((reg_gr size_osz reg_or_mem) (imm_implict B1 0x1)))
+	(code () "d2 /2" ((reg_gr B1 reg_or_mem) (reg_gr B1 0x1)))
+	(code () "d3 /2" ((reg_gr size_osz reg_or_mem) (reg_gr B1 0x1)))
+)
+
+(insn insn_rcr "rcr" ((P arg0) (B1 arg1))
+	(valid-modes TODO)
+	(code () "c0 /3" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code () "c1 /3" ((reg_gr size_osz reg_or_mem) (imm_1st B1)))
+	(code () "d0 /3" ((reg_gr B1 reg_or_mem) (imm_implict B1 0x1)))
+	(code () "d1 /3" ((reg_gr size_osz reg_or_mem) (imm_implict B1 0x1)))
+	(code () "d2 /3" ((reg_gr B1 reg_or_mem) (reg_gr B1 0x1)))
+	(code () "d3 /3" ((reg_gr size_osz reg_or_mem) (reg_gr B1 0x1)))
+)
+
+(insn insn_shl "shl" ((P arg0) (B1 arg1))
+	(valid-modes TODO)
+	(code () "c0 /4" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code () "c1 /4" ((reg_gr size_osz reg_or_mem) (imm_1st B1)))
+	(code () "d0 /4" ((reg_gr B1 reg_or_mem) (imm_implict B1 0x1)))
+	(code () "d1 /4" ((reg_gr size_osz reg_or_mem) (imm_implict B1 0x1)))
+	(code () "d2 /4" ((reg_gr B1 reg_or_mem) (reg_gr B1 0x1)))
+	(code () "d3 /4" ((reg_gr size_osz reg_or_mem) (reg_gr B1 0x1)))
+)
+
+(insn insn_shr "shr" ((P arg0) (B1 arg1))
+	(valid-modes TODO)
+	(code () "c0 /5" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code () "c1 /5" ((reg_gr size_osz reg_or_mem) (imm_1st B1)))
+	(code () "d0 /5" ((reg_gr B1 reg_or_mem) (imm_implict B1 0x1)))
+	(code () "d1 /5" ((reg_gr size_osz reg_or_mem) (imm_implict B1 0x1)))
+	(code () "d2 /5" ((reg_gr B1 reg_or_mem) (reg_gr B1 0x1)))
+	(code () "d3 /5" ((reg_gr size_osz reg_or_mem) (reg_gr B1 0x1)))
+)
+
+(insn insn__sal "_sal" ((P arg0) (B1 arg1))
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_asm_skip) "c0 /6" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_asm_skip) "c1 /6" ((reg_gr size_osz reg_or_mem) (imm_1st B1)))
+	(code (etag_asm_skip) "d0 /6" ((reg_gr B1 reg_or_mem) (imm_implict B1 0x1)))
+	(code (etag_asm_skip) "d1 /6" ((reg_gr size_osz reg_or_mem) (imm_implict B1 0x1)))
+	(code (etag_asm_skip) "d2 /6" ((reg_gr B1 reg_or_mem) (reg_gr B1 0x1)))
+	(code (etag_asm_skip) "d3 /6" ((reg_gr size_osz reg_or_mem) (reg_gr B1 0x1)))
+)
+
+(insn insn_sar "sar" ((P arg0) (B1 arg1))
+	(valid-modes TODO)
+	(code () "c0 /7" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code () "c1 /7" ((reg_gr size_osz reg_or_mem) (imm_1st B1)))
+	(code () "d0 /7" ((reg_gr B1 reg_or_mem) (imm_implict B1 0x1)))
+	(code () "d1 /7" ((reg_gr size_osz reg_or_mem) (imm_implict B1 0x1)))
+	(code () "d2 /7" ((reg_gr B1 reg_or_mem) (reg_gr B1 0x1)))
+	(code () "d3 /7" ((reg_gr size_osz reg_or_mem) (reg_gr B1 0x1)))
+)
+
+# --- vmx instructions ---
+
+(insn insn_invept "invept" ((P arg0) (B16 arg1))
+	(valid-modes TODO)
+	(code () "66 0f 38 &80 /r /mod_m" ((reg_gr size_osz_ptr) (mem_ea B16)))
+)
+
+(insn insn_invvpid "invvpid" ((P arg0) (B16 arg1))
+	(valid-modes TODO)
+	(code () "66 0f 38 &81 /r /mod_m" ((reg_gr size_osz_ptr) (mem_ea B16)))
+)
+
+(insn insn_vmcall "vmcall" ()
+	(valid-modes TODO)
+	(code () "0f 01 /0 /mod_3 /rm_1" ())
+)
+
+(insn insn_vmclear "vmclear" ((B8 arg0))
+	(valid-modes TODO)
+	(code () "66 nofx 0f c7 /6 /mod_m" ((mem_ea B8)))
+)
+
+(insn insn_vmlaunch "vmlaunch" ()
+	(valid-modes TODO)
+	(code () "0f 01 /0 /mod_3 /rm_2" ())
+)
+
+(insn insn_vmresume "vmresume" ()
+	(valid-modes TODO)
+	(code () "0f 01 /0 /mod_3 /rm_3" ())
+)
+
+(insn insn_vmptrld "vmptrld" ((B8 arg0))
+	(valid-modes TODO)
+	(code () "no66 nofx 0f c7 /6 /mod_m" ((mem_ea B8)))
+)
+
+(insn insn_vmptrst "vmptrst" ((B8 arg0))
+	(valid-modes TODO)
+	(code () "no66 nofx 0f c7 /7 /mod_m" ((mem_ea B8)))
+)
+
+(insn insn_vmread "vmread" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code () "no66 nofx 0f 78 /r" ((reg_gr size_osz_ptr reg_or_mem) (reg_gr size_osz_ptr)))
+)
+
+(insn insn_vmwrite "vmwrite" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code () "no66 nofx 0f 79 /r" ((reg_gr size_osz_ptr) (reg_gr size_osz_ptr reg_or_mem)))
+)
+
+(insn insn_vmxoff "vmxoff" ()
+	(valid-modes TODO)
+	(code () "0f 01 /0 /mod_3 /rm_4" ())
+)
+
+(insn insn_vmxon "vmxon" ((B8 arg0))
+	(valid-modes TODO)
+	(code () "no66 f3 0f c7 /6 /mod_m" ((mem_ea B8)))
+)
+
+# --- experimental instructions ---
+
+(insn insn_fxtract "fxtract" ()
+	(valid-modes TODO)
+	(code () "d9 /6 /mod_3 /rm_4" ())
+)
+
+(insn insn_phaddw "phaddw" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code () "no66 0f 38 &1 /r" ((reg_mmx B8) (reg_mmx B8 reg_or_mem)))
+	(code () "66 0f 38 &1 /r" ((reg_xmm B16) (reg_xmm B16 reg_or_mem)))
+)
+
+(insn insn_phaddd "phaddd" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code () "no66 0f 38 &2 /r" ((reg_mmx B8) (reg_mmx B8 reg_or_mem)))
+	(code () "66 0f 38 &2 /r" ((reg_xmm B16) (reg_xmm B16 reg_or_mem)))
+)
+
+(insn insn_f2xm1 "f2xm1" ()
+	(valid-modes TODO)
+	(code () "d9 /6 /mod_3 /rm_0" ())
+)
+
+(insn insn_fcos "fcos" ()
+	(valid-modes TODO)
+	(code () "d9 /7 /mod_3 /rm_7" ())
+)
+
+# --- some new instructions ---
+
+(insn insn_movaps "movaps" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code () "0f 28 /r" ((reg_xmm B16) (reg_xmm B16 reg_or_mem)))
+	(code () "0f 29 /r" ((reg_xmm B16 reg_or_mem) (reg_xmm B16)))
+)
+
+(insn insn_stmxcsr "stmxcsr" ((B4 arg0))
+	(valid-modes TODO)
+	(code () "0f ae /3 /mod_m" ((mem_ea B4)))
+)
+
+(insn insn_ldmxcsr "ldmxcsr" ((B4 arg0))
+	(valid-modes TODO)
+	(code () "0f ae /2 /mod_m" ((mem_ea B4)))
+)
+
+(insn insn_movdqu "movdqu" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code () "no66 f3 0f 6f /r" ((reg_xmm B16) (reg_xmm B16 reg_or_mem)))
+	(code () "no66 f3 0f 7f /r" ((reg_xmm B16 reg_or_mem) (reg_xmm B16)))
+)
+
+(insn insn__movsd2 "_movsd2" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(disasm special)
+	(code () "f2 0f 10 /r" ((reg_xmm B8) (reg_xmm B8 reg_or_mem)))
+	(code () "f2 0f 11 /r" ((reg_xmm B8 reg_or_mem) (reg_xmm B8)))
+)
+
+(insn insn_movss "movss" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code () "f3 0f 10 /r" ((reg_xmm B4) (reg_xmm B4 reg_or_mem)))
+	(code () "f3 0f 11 /r" ((reg_xmm B4 reg_or_mem) (reg_xmm B4)))
+)
+
+(insn insn_movdqa "movdqa" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code () "66 nofx 0f 6f /r" ((reg_xmm B16) (reg_xmm B16 reg_or_mem)))
+	(code () "66 nofx 0f 7f /r" ((reg_xmm B16 reg_or_mem) (reg_xmm B16)))
+)
+
+(insn insn_prefetch "prefetch" ((B1 arg0))
+	(valid-modes TODO)
+	(code () "0f 0d /0 /mod_m" ((mem_ea B1)))
+)
+
+(insn insn_prefetchw "prefetchw" ((B1 arg0))
+	(valid-modes TODO)
+	(code () "0f 0d /1 /mod_m" ((mem_ea B1)))
+)
+
+# --- general instructions ---
+
+# When accessing r:0, AL/AX/EAX/RAX is used at all times and neither rex.r nor any other
+# rex bit will cause a different value besides the accumulator (register 0) to be used.
+# Note that if a REX is used with 88, 8a, b0, or b8 then we're using an 8 bit general
+# purpose register with REX. That register is always the LOW BYTE of one of the 16
+# general purpose registers selected. If P=osz, then REX.W can be used for osz=64bit mode.
+(insn insn_mov "mov" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code () "88 /r" ((reg_gr B1 reg_or_mem) (reg_gr B1)))
+	(code () "8a /r" ((reg_gr B1) (reg_gr B1 reg_or_mem)))
+	(code () "89 /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz)))
+	(code () "8b /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+	(code (etag_imm64_disp) "a0" ((reg_gr B1 0x0) (mem_fulldisp B1)))
+	(code (etag_imm64_disp) "a2" ((mem_fulldisp B1) (reg_gr B1 0x0)))
+	(code (etag_imm64_disp) "a1" ((reg_gr size_osz 0x0) (mem_fulldisp size_osz)))
+	(code (etag_imm64_disp) "a3" ((mem_fulldisp size_osz) (reg_gr size_osz 0x0)))
+	(code (etag_reg_base) "b0" ((reg_gr B1) (imm_1st B1)))
+	(code (etag_imm64_disp etag_reg_base) "b8" ((reg_gr size_osz) (imm_both size_osz)))
+	(code () "c6 /0" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_imm64_sx32) "c7 /0" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+)
+
+(insn insn__ins "_ins" ((P arg0) (B2 arg1))
+	(flags itag_repable)
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_no_rex_w) "6c" ((mem_implict_std B1) (reg_gr B2 0x2)))
+	(code (etag_no_rex_w) "6d" ((mem_implict_std size_osz) (reg_gr B2 0x2)))
+)
+
+(insn insn__outs "_outs" ((B2 arg0) (P arg1))
+	(flags itag_repable)
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_no_rex_w) "6e" ((reg_gr B2 0x2) (mem_implict_sts B1)))
+	(code (etag_no_rex_w) "6f" ((reg_gr B2 0x2) (mem_implict_sts size_osz)))
+)
+
+(insn insn_bound "bound" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_no64) "62 /r /mod_m" ((reg_gr size_osz) (mem_ea_dbl size_osz)))
+)
+
+# This instruction is valid only in protected mode.
+# Not valid in 64-bit mode.
+# arpl: valid only in protected mode. In real or vm86 mode it will #UD (int 6).
+# arpl: in 64 bit mode this is movsxd, used with rex.w.
+(insn insn_arpl "arpl" ((B2 arg0) (B2 arg1))
+	(valid-modes TODO)
+	(code (etag_like_arpl) "63 /r" ((reg_gr B2 reg_or_mem) (reg_gr B2)))
+)
+
+# o16 : dest[15:0] = src[15:0] (not mentioned by intel)
+# o32 : dest = src (discouraged)
+# o64 : dest = sx<B8>(src) -- this is usual usage
+(insn insn_movsxd "movsxd" ((P arg0) (B4 arg1))
+	(valid-modes TODO)
+	(code (etag_like_movsxd) "63 /r" ((reg_gr size_osz) (reg_gr B4 reg_or_mem)))
+)
+
+# This instruction is valid only in SMM. I suppose its 'defined behavior' in other modes
+# is to generate #UD (interrupt 6).
+(insn insn_rsm "rsm" ()
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code () "0f aa" ())
+)
+
+# This always generates interrupt 6. It will never be defined, even in future processors.
+(insn insn_ud2 "ud2" ()
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code () "0f 0b" ())
+)
+
+(insn insn_sysenter "sysenter" ()
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code () "0f 34" ())
+)
+
+(insn insn_sysexit "sysexit" ()
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code () "0f 35" ())
+)
+
+(insn insn_syscall "syscall" ()
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code () "0f 05" ())
+)
+
+(insn insn_sysret "sysret" ()
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code () "0f 07" ())
+)
+
+(insn insn_sgdt "sgdt" ((B2 arg0))
+	(valid-modes TODO)
+	(code () "0f 01 /0 /mod_m" ((mem_ea_lim B2)))
+)
+
+(insn insn_sidt "sidt" ((B2 arg0))
+	(valid-modes TODO)
+	(code () "0f 01 /1 /mod_m" ((mem_ea_lim B2)))
+)
+
+(insn insn_lgdt "lgdt" ((B2 arg0))
+	(valid-modes TODO)
+	(code () "0f 01 /2 /mod_m" ((mem_ea_lim B2)))
+)
+
+(insn insn_lidt "lidt" ((B2 arg0))
+	(valid-modes TODO)
+	(code () "0f 01 /3 /mod_m" ((mem_ea_lim B2)))
+)
+
+(insn insn_sldt "sldt" ((P arg0))
+	(valid-modes TODO)
+	(code () "0f 00 /0 /mod_m" ((mem_ea B2)))
+	(code (etag_reg_rm) "0f 00 /0 /mod_3" ((reg_gr size_osz)))
+)
+
+(insn insn_lldt "lldt" ((B2 arg0))
+	(valid-modes TODO)
+	(code () "0f 00 /2" ((reg_gr B2 reg_or_mem)))
+)
+
+(insn insn_smsw "smsw" ((P arg0))
+	(valid-modes TODO)
+	(code () "0f 01 /4 /mod_m" ((mem_ea B2)))
+	(code (etag_reg_rm) "0f 01 /4 /mod_3" ((reg_gr size_osz)))
+)
+
+(insn insn_lmsw "lmsw" ((B2 arg0))
+	(valid-modes TODO)
+	(code () "0f 01 /6" ((reg_gr B2 reg_or_mem)))
+)
+
+(insn insn_str "str" ((P arg0))
+	(valid-modes TODO)
+	(code () "0f 00 /1 /mod_m" ((mem_ea B2)))
+	(code (etag_reg_rm) "0f 00 /1 /mod_3" ((reg_gr size_osz)))
+)
+
+(insn insn_verr "verr" ((B2 arg0))
+	(valid-modes TODO)
+	(code () "0f 00 /4" ((reg_gr B2 reg_or_mem)))
+)
+
+(insn insn_verw "verw" ((B2 arg0))
+	(valid-modes TODO)
+	(code () "0f 00 /5" ((reg_gr B2 reg_or_mem)))
+)
+
+(insn insn_wbinvd "wbinvd" ()
+	(valid-modes TODO)
+	(code () "0f 09" ())
+)
+
+(insn insn_wrmsr "wrmsr" ()
+	(valid-modes TODO)
+	(code () "0f 30" ())
+)
+
+(insn insn_rdmsr "rdmsr" ()
+	(valid-modes TODO)
+	(code () "0f 32" ())
+)
+
+(insn insn_rdpmc "rdpmc" ()
+	(valid-modes TODO)
+	(code () "0f 33" ())
+)
+
+(insn insn_rdtsc "rdtsc" ()
+	(valid-modes TODO)
+	(code () "0f 31" ())
+)
+
+(insn insn_clts "clts" ()
+	(valid-modes TODO)
+	(code () "0f 06" ())
+)
+
+(insn insn_cpuid "cpuid" ()
+	(valid-modes TODO)
+	(code () "0f a2" ())
+)
+
+(insn insn_invd "invd" ()
+	(valid-modes TODO)
+	(code () "0f 08" ())
+)
+
+(insn insn_invlpg "invlpg" ((B1 arg0))
+	(valid-modes TODO)
+	(code () "0f 01 /7 /mod_m" ((mem_ea_eai B1)))
+)
+
+# NOTE: When we decode, rm has become reg_gr/mem.
+# This automatically uses the 'r/m' field of the modr/m,
+# whereas the r operand uses the reg/op field when /r is used.
+(insn insn_lar "lar" ((P arg0) (Q arg1))
+	(valid-modes TODO)
+	(code () "0f 02 /r /mod_3" ((reg_gr size_osz) (reg_gr size_osz_max32 reg_or_mem)))
+	(code () "0f 02 /r /mod_m" ((reg_gr size_osz) (reg_gr B2 reg_or_mem)))
+)
+
+(insn insn_lsl "lsl" ((P arg0) (Q arg1))
+	(valid-modes TODO)
+	(code () "0f 03 /r /mod_3" ((reg_gr size_osz) (reg_gr size_osz_max32 reg_or_mem)))
+	(code () "0f 03 /r /mod_m" ((reg_gr size_osz) (reg_gr B2 reg_or_mem)))
+)
+
+(insn insn_ltr "ltr" ((B2 arg0))
+	(valid-modes TODO)
+	(code () "0f 00 /3" ((reg_gr B2 reg_or_mem)))
+)
+
+# The rm's (i.e. reg_or_mem operands) here are really reg's since we use /mod_3.
+(insn insn__movcr "_movcr" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(disasm special)
+	(code () "0f 20 /r /mod_3" ((reg_gr size_osz_ptr reg_or_mem) (reg_cr size_osz_ptr)))
+	(code () "0f 22 /r /mod_3" ((reg_cr size_osz_ptr) (reg_gr size_osz_ptr reg_or_mem)))
+)
+
+(insn insn__movdr "_movdr" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(disasm special)
+	(code () "0f 21 /r /mod_3" ((reg_gr size_osz_ptr reg_or_mem) (reg_dr size_osz_ptr)))
+	(code () "0f 23 /r /mod_3" ((reg_dr size_osz_ptr) (reg_gr size_osz_ptr reg_or_mem)))
+)
+
+(insn insn_les "les" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_no64) "c4 /r /mod_m" ((reg_gr size_osz) (mem_ea_seg size_osz)))
+)
+
+(insn insn_lds "lds" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_no64) "c5 /r /mod_m" ((reg_gr size_osz) (mem_ea_seg size_osz)))
+)
+
+# "Executing LFS, LGS, or LSS with a 64-bit operand size only loads a 32-bit general purpose register
+# and the specified segment register." -- AMD manual. In other words, rex.w has no effect here.
+
+(insn insn_lss "lss" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_no_rex_w) "0f b2 /r /mod_m" ((reg_gr size_osz) (mem_ea_seg size_osz)))
+)
+
+(insn insn_lfs "lfs" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_no_rex_w) "0f b4 /r /mod_m" ((reg_gr size_osz) (mem_ea_seg size_osz)))
+)
+
+(insn insn_lgs "lgs" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_no_rex_w) "0f b5 /r /mod_m" ((reg_gr size_osz) (mem_ea_seg size_osz)))
+)
+
+# WARNING: Not Tested!
+(insn insn_bsf "bsf" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code () "0f bc /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+# WARNING: Not Tested!
+(insn insn_bsr "bsr" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code () "0f bd /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+# --- enter/leave instructions ---
+
+# In 64-bit mode, the operand size of ENTER defaults to 64 bits, and there is no prefix available for
+# encoding a 32-bit operand size. --AMD manual. Note, doesn't say whether 16-bit operand size can be
+# achieved in 64-bit mode. That is, what if we do DB 0x66 / ENTER 0,0 ??? In that case we've really
+# got an operand size of 16 bits, even though we're in 64-bit mode !
+
+# Note that alloc's must be at global emu scope--can't be inside an 'if' or 'times' block.
+
+(insn insn_enter "enter" ((B2 arg0) (B1 arg1))
+	(valid-modes TODO)
+	(code (etag_is64) "c8" ((imm_1st B2) (imm_2nd B1)))
+	(emu advanced
+		(alloc B8 alloc_space (_zx B8 arg0))
+		(alloc B8 level (_and arg1 (B1 31)))
+		(split (o16) (push BP) (alloc B8 vsize 2) (alloc B2 temp_rbp SP) )
+		(split (o32) (push EBP) (alloc B8 vsize 4) (alloc B4 temp_rbp ESP) )
+		(split (o64) (push RBP) (alloc B8 vsize 8) (alloc B8 temp_rbp RSP) )
+		
+		# NOTE: We have not verified stack-size (ssz) is what really affects the choice of
+		# RBP/EBP/BP, but this seems likely. The vast majority of the time, one will have
+		# ssz == osz == asz, anyway. We use ssz to decide BP/EBP/RSP in _fetch_stack, because
+		# that way we'll only have to split with respect to operand size and stack size, thus
+		# saving space.
+		
+		(alloc B8 i 0)				# used by 'times' loop, below.
+		
+		(split (s16)
+			(if (_nonzero level)		# note: 'level' must be known at CHECK time
+				(times (i 1 level 5)	# for(i = 1; i < level; ++i). level must be < (1 << 5) = 32.
+					(push (_fetch_stack vsize (_sub BP (_zx B2 (_mul i vsize)))))
+				)
+			)
+		)
+		(split (s32)
+			(if (_nonzero level)		# note: 'level' must be known at CHECK time
+				(times (i 1 level 5)	# for(i = 1; i < level; ++i). level must be < (1 << 5) = 32.
+					(push (_fetch_stack vsize (_sub EBP (_zx B4 (_mul i vsize)))))
+				)
+			)
+		)
+		(split (s64)
+			(if (_nonzero level)		# note: 'level' must be known at CHECK time
+				(times (i 1 level 5)	# for(i = 1; i < level; ++i). level must be < (1 << 5) = 32.
+					(push (_fetch_stack vsize (_sub RBP (_mul i vsize))))
+				)
+			)
+		)
+
+		(if (_nonzero level)
+			(push temp_rbp)
+		)
+		
+		(split (s16)
+			(asgn SP (_sub SP (_zx B2 alloc_space)))
+			(check_stack_writable vsize SP)	# make sure we can write vsize bytes to [ss:sp]
+		)
+		(split (s32)
+			(asgn ESP (_sub ESP (_zx B4 alloc_space)))
+			(check_stack_writable vsize ESP)	# make sure we can write vsize bytes to [ss:esp]
+		)
+		(split (s64)
+			(asgn RSP (_sub RSP alloc_space))
+			(check_stack_writable vsize RSP)	# make sure we can write vsize bytes to [ss:rsp]
+		)
+		
+		(split (o16)
+			(asgn BP (_zx B2 temp_rbp))
+		)
+		(split (o32)
+			(asgn EBP (_zx B4 temp_rbp))
+		)
+		(split (o64)
+			(asgn RBP (_zx B8 temp_rbp))
+		)
+	)
+)
+
+(insn insn_leave "leave" ()
+	(valid-modes TODO)
+	(code () "c9" ())
+)
+
+# --- begin bit test and related instructions ---
+
+# Note: these instructions can have some undefined flag outputs, and are thus marked
+# "intermediate". An intermediate instruction is one that requires some before or after
+# logic to be executed prior to and after it's executed. This logic might be a check for
+# divide by zero or divide overflow before we execute a DIV instruction, or for bit test
+# instructions, we might zero-out undefined flags. An instruction is "advanced" if it
+# needs special treatment altogether. It might be a control transfer instruction, or
+# whatever. In that case the code we generate is special, and might be a RET instruction
+# if we need to emulate it. --The previous note applies to Dynamic Translation (FASTEMU).
+# Sometimes we may need our "after" code to compute ZF & PF from an output value (i.e. aaa,
+# though that particular instruction is invalid in 64bit mode and must be 'advanced' instead).
+# For BSF/BSR, there is some confusion over what the destination value is, if the source is
+# 0. AMD claims it's unchanged; Intel claims it's undefined. So we will need to make BSF/BSR
+# "advanced". They will be totally emulated, so as to iron out any differences the host CPU
+# may have from what we intend to do.
+
+# Note: you can't put alloc's inside a times block. Really all times is good for is the enter
+# instruction. BSF/BSR etc. will use a special function for their emulation, and will be
+# emulated (rather slowly) using high-level code.
+
+# WARNING: Not Tested!
+(insn insn__bt_mem_reg "_bt_mem_reg" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(disasm "bt")
+	(code () "0f a3 /r /mod_m" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz)))
+	(emu advanced		# must be advanced since we can't easily DT the instruction
+		(split (o16)
+			(alloc B2 byte_offset (_mul (B2 2) (_shrs arg1 (B1 4))))
+			(alloc P tmp (_fetch_signed_ofs arg0 byte_offset))
+			(alloc B1 shift (_zx B1 (_umod arg1 (P 16))))
+		)
+		(split (o32)
+			(alloc B4 byte_offset (_mul (B4 4) (_shrs arg1 (B1 5))))
+			(alloc P tmp (_fetch_signed_ofs arg0 byte_offset))
+			(alloc B1 shift (_zx B1 (_umod arg1 (P 32))))
+		)
+		(split (o64)
+			(alloc B8 byte_offset (_mul (B8 8) (_shrs arg1 (B1 6))))
+			(alloc P tmp (_fetch_signed_ofs arg0 byte_offset))
+			(alloc B1 shift (_zx B1 (_umod arg1 (P 64))))
+		)
+		(alloc BIT result (_and (_shru tmp shift) (P 1)))
+		(asgn CF result)
+		(asgn OF (_undefined zero))
+		(asgn SF (_undefined zero))
+		(asgn ZF (_undefined zero))
+		(asgn AF (_undefined zero))
+		(asgn PF (_undefined zero))
+	)
+)
+
+(insn insn__bt_other "_bt_other" ((P arg0) (Q arg1))
+	(valid-modes TODO)
+	(disasm "bt")
+	(code () "0f a3 /r /mod_3" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz)))
+	(code () "0f ba /4" ((reg_gr size_osz reg_or_mem) (imm_1st B1)))
+	(emu intermediate		# must be intermediate since we've got some undefined output flags
+		(split (o16)
+			(alloc B1 shift (_zx B1 (_umod arg1 (Q 16))))
+		)
+		(split (o32)
+			(alloc B1 shift (_zx B1 (_umod arg1 (Q 32))))
+		)
+		(split (o64)
+			(alloc B1 shift (_zx B1 (_umod arg1 (Q 64))))
+		)
+		(alloc BIT result (_and (_shru arg0 shift) (P 1)))
+		(asgn CF result)
+		(asgn OF (_undefined zero))
+		(asgn SF (_undefined zero))
+		(asgn ZF (_undefined zero))
+		(asgn AF (_undefined zero))
+		(asgn PF (_undefined zero))
+	)
+)
+
+# WARNING: Not Tested!
+(insn insn_bts "bts" ((P arg0) (Q arg1))
+	(flags itag_lockable)
+	(valid-modes TODO)
+	(code () "0f ab /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz)))
+	(code () "0f ba /5" ((reg_gr size_osz reg_or_mem) (imm_1st B1)))
+)
+
+# WARNING: Not Tested!
+(insn insn_btr "btr" ((P arg0) (Q arg1))
+	(flags itag_lockable)
+	(valid-modes TODO)
+	(code () "0f b3 /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz)))
+	(code () "0f ba /6" ((reg_gr size_osz reg_or_mem) (imm_1st B1)))
+)
+
+# WARNING: Not Tested!
+(insn insn_btc "btc" ((P arg0) (Q arg1))
+	(flags itag_lockable)
+	(valid-modes TODO)
+	(code () "0f bb /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz)))
+	(code () "0f ba /7" ((reg_gr size_osz reg_or_mem) (imm_1st B1)))
+)
+
+# --- end bit test and related instructions ---
+
+# WARNING: Not Tested!
+# The result of applying the BSWAP instruction to a 16-bit register is undefined. --AMD manual
+# We will define it as follows: for us, BSWAP reg16 is really swaps the 64bit register.
+# FIXME: look into the use of size_osz_min32; need to do an experiment to see what really
+# happens on a CPU if BSWAP reg16 is used.
+(insn insn_bswap "bswap" ((P arg0))
+	(valid-modes TODO)
+	(code (etag_reg_base etag_asm_66_if_o16) "0f c8" ((reg_gr size_osz_min32)))
+)
+
+# WARNING: Not Tested!
+(insn insn_cmpxchg "cmpxchg" ((P arg0) (P arg1))
+	(flags itag_lockable)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "0f b0 /r" ((reg_gr B1 reg_or_mem) (reg_gr B1)))
+	(code () "0f b1 /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz)))
+)
+
+# WARNING: Not Tested!
+(insn insn__cmpxchgxb "_cmpxchgxb" ((P arg0))
+	(flags itag_lockable)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "no66 nofx 0f c7 /1 /mod_m" ((mem_ea size_osz_min64)))
+	(code (etag_asm_skip) "66 nofx 0f c7 /1 /mod_m" ((mem_ea size_osz_min64)))
+)
+
+# WARNING: Not Tested!
+# The operand-size attribute determines the size of the zero-extended value. --AMD manual
+# This leads us to believe if 66 is missing and we're in 16bit mode, the instruction does
+# a simple copy operation, at least according to AMD manuals. etag_asm_66_if_o16 was added
+# so that when assembling we use 0x66 if in 16-bit mode and we want the destination operand
+# size to be 32 bits.
+# FIXME: look into the use of size_osz_min32 here, maybe it should be size_osz instead?
+(insn insn_movzx "movzx" ((P arg0) (Q arg1))
+	(valid-modes TODO)
+	(code (etag_asm_66_if_o16) "0f b6 /r" ((reg_gr size_osz) (reg_gr B1 reg_or_mem)))
+	(code (etag_asm_66_if_o16) "0f b7 /r" ((reg_gr size_osz_min32) (reg_gr B2 reg_or_mem)))
+)
+
+# WARNING: Not Tested!
+# The operand-size attribute determines the size of the zero-extended value. --AMD manual
+# This leads us to believe if 66 is missing and we're in 16bit mode, the instruction does
+# a simple copy operation, at least according to AMD manuals. etag_asm_66_if_o16 was added
+# so that when assembling we use 0x66 if in 16-bit mode and we want the destination operand
+# size to be 32 bits.
+# FIXME: look into the use of size_osz_min32 here, maybe it should be size_osz instead?
+(insn insn_movsx "movsx" ((P arg0) (Q arg1))
+	(valid-modes TODO)
+	(code (etag_asm_66_if_o16) "0f be /r" ((reg_gr size_osz) (reg_gr B1 reg_or_mem)))
+	(code (etag_asm_66_if_o16) "0f bf /r" ((reg_gr size_osz_min32) (reg_gr B2 reg_or_mem)))
+)
+
+# WARNING: Not Tested!
+(insn insn_shld "shld" ((P arg0) (P arg1) (B1 arg2))
+	(valid-modes TODO)
+	(code () "0f a4 /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz) (imm_1st B1)))
+	(code () "0f a5 /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz) (reg_gr B1 0x1)))
+)
+
+# WARNING: Not Tested!
+(insn insn_shrd "shrd" ((P arg0) (P arg1) (B1 arg2))
+	(valid-modes TODO)
+	(code () "0f ac /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz) (imm_1st B1)))
+	(code () "0f ad /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz) (reg_gr B1 0x1)))
+)
+
+# WARNING: Not Tested!
+(insn insn_xadd "xadd" ((P arg0) (P arg1))
+	(flags itag_lockable)
+	(valid-modes TODO)
+	(code () "0f c0 /r" ((reg_gr B1 reg_or_mem) (reg_gr B1)))
+	(code () "0f c1 /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz)))
+)
+
+(insn insn_cli "cli" ()
+	(valid-modes TODO)
+	(code () "fa" ())
+)
+
+(insn insn_sti "sti" ()
+	(valid-modes TODO)
+	(code () "fb" ())
+)
+
+(insn insn_in "in" ((P arg0) (Q arg1))
+	(valid-modes TODO)
+	(disasm special)
+	(code () "e4" ((reg_gr B1 0x0) (imm_1st B1)))
+	(code () "e5" ((reg_gr size_osz_max32 0x0) (imm_1st B1)))
+	(code () "ec" ((reg_gr B1 0x0) (reg_gr B2 0x2)))
+	(code () "ed" ((reg_gr size_osz_max32 0x0) (reg_gr B2 0x2)))
+)
+
+(insn insn_out "out" ((P arg0) (Q arg1))
+	(valid-modes TODO)
+	(disasm special)
+	(code () "e6" ((imm_1st B1) (reg_gr B1 0x0)))
+	(code () "e7" ((imm_1st B1) (reg_gr size_osz_max32 0x0)))
+	(code () "ee" ((reg_gr B2 0x2) (reg_gr B1 0x0)))
+	(code () "ef" ((reg_gr B2 0x2) (reg_gr size_osz_max32 0x0)))
+)
+
+# WARNING: Not Tested! (This refers to CMOVcc).
+(insn insn__cmovo "cmovo" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 40 /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__cmovno "cmovno" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 41 /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__cmovc "cmovc" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 42 /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__cmovnc "cmovnc" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 43 /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__cmovz "cmovz" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 44 /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__cmovnz "cmovnz" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 45 /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__cmovbe "cmovbe" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 46 /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__cmova "cmova" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 47 /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__cmovs "cmovs" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 48 /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__cmovns "cmovns" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 49 /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__cmovp "cmovp" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 4a /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__cmovnp "cmovnp" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 4b /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__cmovl "cmovl" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 4c /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__cmovge "cmovge" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 4d /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__cmovle "cmovle" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 4e /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__cmovg "cmovg" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 4f /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn_emms "emms" ()
+	(valid-modes TODO)
+	(code () "0f 77" ())
+)
+
+# Note: table format depends on whether rex.w is used or not.
+(insn insn__fxrstor "_fxrstor" ((B16 arg0))
+	(valid-modes TODO)
+	(disasm special)
+	(code () "0f ae /1 /mod_m" ((mem_ea_fxs B16)))	# size given is size of each entry
+)
+
+# Note: table format depends on whether rex.w is used or not.
+(insn insn__fxsave "_fxsave" ((B16 arg0))
+	(valid-modes TODO)
+	(disasm special)
+	(code () "0f ae /0 /mod_m" ((mem_ea_fxs B16)))	# size given is size of each entry
+)
+
+(insn insn__pushsr "_pushsr" ((P arg0))
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_no64) "06" ((reg_sr size_osz 0x0)))
+	(code (etag_no64) "0e" ((reg_sr size_osz 0x1)))
+	(code (etag_no64) "16" ((reg_sr size_osz 0x2)))
+	(code (etag_no64) "1e" ((reg_sr size_osz 0x3)))
+	(code (etag_is64) "0f a0" ((reg_sr size_osz 0x4)))
+	(code (etag_is64) "0f a8" ((reg_sr size_osz 0x5)))
+)
+
+(insn insn__popsr "_popsr" ((P arg0))
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_no64) "07" ((reg_sr size_osz 0x0)))
+	(code (etag_no64) "17" ((reg_sr size_osz 0x2)))
+	(code (etag_no64) "1f" ((reg_sr size_osz 0x3)))
+	(code (etag_is64) "0f a1" ((reg_sr size_osz 0x4)))
+	(code (etag_is64) "0f a9" ((reg_sr size_osz 0x5)))
+)
+
+(insn insn__push "_push" ((P arg0))
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_reg_base etag_is64) "50" ((reg_gr size_osz)))
+	(code (etag_imm64_sx32 etag_is64) "68" ((imm_1st size_osz)))
+	(code (etag_imm64_sx32 etag_sx_byte etag_is64) "6a" ((imm_1st size_osz)))
+	(code (etag_is64) "ff /6" ((reg_gr size_osz reg_or_mem)))
+)
+
+# 8f -- intel486 supposedly treats 8f /1../7 same as 8f /0 (according to opcodes info
+#       that comes with Ralph Brown's interrupt list). MS-DOS DEBUG.EXE reports the
+#       same thing. However, the CPU I tested it on only recognized /0 and that's the
+#       documented behavior so we'll only use that.
+(insn insn__pop "_pop" ((P arg0))
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_reg_base etag_is64) "58" ((reg_gr size_osz)))
+	(code (etag_is64) "8f /0" ((reg_gr size_osz reg_or_mem)))
+)
+
+# NOTE: With _movsr*, when it's a memory operand it's always 16-bits. But, if it's a register,
+# and it's a destination, it has size osz. (If it's a source, the processor ignores the upper
+# 16 bits).
+(insn insn__movsrv "_movsrv" ((B2 arg0) (B2 arg1))
+	(valid-modes TODO)
+	(disasm special)
+	(code () "8e /0" ((reg_sr B2 0x0) (reg_gr B2 reg_or_mem)))
+	(code () "8e /2" ((reg_sr B2 0x2) (reg_gr B2 reg_or_mem)))
+	(code () "8e /3" ((reg_sr B2 0x3) (reg_gr B2 reg_or_mem)))
+	(code () "8e /4" ((reg_sr B2 0x4) (reg_gr B2 reg_or_mem)))
+	(code () "8e /5" ((reg_sr B2 0x5) (reg_gr B2 reg_or_mem)))
+)
+
+(insn insn__movvsr "_movvsr" ((P arg0) (B2 arg1))
+	(valid-modes TODO)
+	(disasm special)
+	(code () "8c /0 /mod_3" ((reg_gr size_osz reg_or_mem) (reg_sr B2 0x0)))
+	(code () "8c /1 /mod_3" ((reg_gr size_osz reg_or_mem) (reg_sr B2 0x1)))
+	(code () "8c /2 /mod_3" ((reg_gr size_osz reg_or_mem) (reg_sr B2 0x2)))
+	(code () "8c /3 /mod_3" ((reg_gr size_osz reg_or_mem) (reg_sr B2 0x3)))
+	(code () "8c /4 /mod_3" ((reg_gr size_osz reg_or_mem) (reg_sr B2 0x4)))
+	(code () "8c /5 /mod_3" ((reg_gr size_osz reg_or_mem) (reg_sr B2 0x5)))
+	(code () "8c /0 /mod_m" ((reg_gr size_osz_seg reg_or_mem) (reg_sr B2 0x0)))
+	(code () "8c /1 /mod_m" ((reg_gr size_osz_seg reg_or_mem) (reg_sr B2 0x1)))
+	(code () "8c /2 /mod_m" ((reg_gr size_osz_seg reg_or_mem) (reg_sr B2 0x2)))
+	(code () "8c /3 /mod_m" ((reg_gr size_osz_seg reg_or_mem) (reg_sr B2 0x3)))
+	(code () "8c /4 /mod_m" ((reg_gr size_osz_seg reg_or_mem) (reg_sr B2 0x4)))
+	(code () "8c /5 /mod_m" ((reg_gr size_osz_seg reg_or_mem) (reg_sr B2 0x5)))
+)
+
+(insn insn__pusha "_pusha" ()
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_no64) "60" ())
+)
+
+(insn insn__popa "_popa" ()
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_no64) "61" ())
+)
+
+(insn insn__pushf "_pushf" ()
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_is64) "9c" ())
+)
+
+(insn insn__popf "_popf" ()
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_is64) "9d" ())
+)
+
+# Arguments given here matches disassembly by msdev.
+(insn insn__movs "_movs" ((P arg0) (P arg1))
+	(flags itag_repable)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "a4" ((mem_implict_std B1) (mem_implict_sts B1)))
+	(code () "a5" ((mem_implict_std size_osz) (mem_implict_sts size_osz)))
+)
+
+(insn insn__cmps "_cmps" ((P arg0) (P arg1))
+	(flags itag_repcond)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "a6" ((mem_implict_sts B1) (mem_implict_std B1)))
+	(code () "a7" ((mem_implict_sts size_osz) (mem_implict_std size_osz)))
+)
+
+(insn insn__stos "_stos" ((P arg0) (P arg1))
+	(flags itag_repable)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "aa" ((mem_implict_std B1) (reg_gr B1 0x0)))
+	(code () "ab" ((mem_implict_std size_osz) (reg_gr size_osz 0x0)))
+)
+
+(insn insn__lods "_lods" ((P arg0) (P arg1))
+	(flags itag_repable)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "ac" ((reg_gr B1 0x0) (mem_implict_sts B1)))
+	(code () "ad" ((reg_gr size_osz 0x0) (mem_implict_sts size_osz)))
+)
+
+(insn insn__scas "_scas" ((P arg0) (P arg1))
+	(flags itag_repable)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "ae" ((reg_gr B1 0x0) (mem_implict_std B1)))
+	(code () "af" ((reg_gr size_osz 0x0) (mem_implict_std size_osz)))
+)
+
+# Note: order of arguments is arbitrary.
+(insn insn__test "_test" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(disasm special)
+	(code () "84 /r" ((reg_gr B1 reg_or_mem) (reg_gr B1)))
+	(code () "85 /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz)))
+	(code () "a8" ((reg_gr B1 0x0) (imm_1st B1)))
+	(code (etag_imm64_sx32) "a9" ((reg_gr size_osz 0x0) (imm_1st size_osz)))
+	(code () "f6 /0" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_imm64_sx32) "f7 /0" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+	(code (etag_asm_skip) "f6 /1" ((reg_gr B1 reg_or_mem) (imm_1st B1)))
+	(code (etag_asm_skip etag_imm64_sx32) "f7 /1" ((reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+)
+
+# note: order of arguments is arbitrary. but, our code requires rm be first so we can allow lock.
+# When disassembling, check to see if basecode is 0x90 and print nop if so -- if rex does not make
+# the other argument r8.
+# Also because the order of arguments is arbitrary, some disassemblers may flip the
+# arguments over what we have here.
+# NOTE: NASM INSNS.DAT says that xchg eax,eax is not "nop" in 64bit mode. We assume this is only
+# true when a rex prefix is used to change the behavior???
+(insn insn__xchg "_xchg" ((P arg0) (P arg1))
+	(flags itag_lock_always)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "86 /r" ((reg_gr B1 reg_or_mem) (reg_gr B1)))
+	(code () "87 /r" ((reg_gr size_osz reg_or_mem) (reg_gr size_osz)))
+	(code (etag_reg_base) "90" ((reg_gr size_osz 0x0) (reg_gr size_osz)))
+)
+
+(insn insn_not "not" ((P arg0))
+	(flags itag_lockable)
+	(valid-modes TODO)
+	(code () "f6 /2" ((reg_gr B1 reg_or_mem)))
+	(code () "f7 /2" ((reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn_neg "neg" ((P arg0))
+	(flags itag_lockable)
+	(valid-modes TODO)
+	(code () "f6 /3" ((reg_gr B1 reg_or_mem)))
+	(code () "f7 /3" ((reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn_inc "inc" ((P arg0))
+	(flags itag_lockable)
+	(valid-modes TODO)
+	(code (etag_no64 etag_reg_base) "40" ((reg_gr size_osz)))
+	(code () "fe /0" ((reg_gr B1 reg_or_mem)))
+	(code () "ff /0" ((reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn_dec "dec" ((P arg0))
+	(flags itag_lockable)
+	(valid-modes TODO)
+	(code (etag_no64 etag_reg_base) "48" ((reg_gr size_osz)))
+	(code () "fe /1" ((reg_gr B1 reg_or_mem)))
+	(code () "ff /1" ((reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__xlat "_xlat" ((B1 arg0))
+	(valid-modes TODO)
+	(disasm special)
+	(code () "d7" ((mem_implict_xls B1)))
+)
+
+# The following refers to setCC instructions.
+# Note: the Intel manual does not use /0 but totally ignores the reg/op field.
+# In practice, /1../7 function the same as /0, but assemblers use /0 so we
+# mainly expect to see /0. It is theoretically possible future processors could
+# demand reg/op=0 for SETcc to work, but this is unlikely.
+
+(insn insn__seto "seto" ((B1 arg0))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 90 /0" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 90 /1" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 90 /2" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 90 /3" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 90 /4" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 90 /5" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 90 /6" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 90 /7" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn__setno "setno" ((B1 arg0))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 91 /0" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 91 /1" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 91 /2" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 91 /3" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 91 /4" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 91 /5" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 91 /6" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 91 /7" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn__setc "setc" ((B1 arg0))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 92 /0" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 92 /1" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 92 /2" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 92 /3" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 92 /4" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 92 /5" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 92 /6" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 92 /7" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn__setnc "setnc" ((B1 arg0))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 93 /0" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 93 /1" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 93 /2" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 93 /3" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 93 /4" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 93 /5" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 93 /6" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 93 /7" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn__setz "setz" ((B1 arg0))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 94 /0" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 94 /1" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 94 /2" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 94 /3" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 94 /4" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 94 /5" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 94 /6" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 94 /7" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn__setnz "setnz" ((B1 arg0))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 95 /0" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 95 /1" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 95 /2" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 95 /3" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 95 /4" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 95 /5" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 95 /6" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 95 /7" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn__setbe "setbe" ((B1 arg0))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 96 /0" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 96 /1" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 96 /2" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 96 /3" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 96 /4" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 96 /5" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 96 /6" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 96 /7" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn__seta "seta" ((B1 arg0))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 97 /0" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 97 /1" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 97 /2" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 97 /3" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 97 /4" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 97 /5" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 97 /6" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 97 /7" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn__sets "sets" ((B1 arg0))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 98 /0" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 98 /1" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 98 /2" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 98 /3" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 98 /4" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 98 /5" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 98 /6" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 98 /7" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn__setns "setns" ((B1 arg0))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 99 /0" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 99 /1" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 99 /2" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 99 /3" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 99 /4" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 99 /5" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 99 /6" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 99 /7" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn__setp "setp" ((B1 arg0))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 9a /0" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9a /1" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9a /2" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9a /3" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9a /4" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9a /5" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9a /6" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9a /7" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn__setnp "setnp" ((B1 arg0))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 9b /0" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9b /1" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9b /2" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9b /3" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9b /4" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9b /5" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9b /6" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9b /7" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn__setl "setl" ((B1 arg0))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 9c /0" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9c /1" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9c /2" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9c /3" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9c /4" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9c /5" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9c /6" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9c /7" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn__setge "setge" ((B1 arg0))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 9d /0" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9d /1" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9d /2" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9d /3" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9d /4" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9d /5" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9d /6" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9d /7" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn__setle "setle" ((B1 arg0))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 9e /0" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9e /1" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9e /2" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9e /3" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9e /4" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9e /5" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9e /6" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9e /7" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn__setg "setg" ((B1 arg0))
+	(valid-modes TODO)
+	(code (etag_has_cc) "0f 9f /0" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9f /1" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9f /2" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9f /3" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9f /4" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9f /5" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9f /6" ((reg_gr B1 reg_or_mem)))
+	(code (etag_asm_skip etag_has_cc) "0f 9f /7" ((reg_gr B1 reg_or_mem)))
+)
+
+# No operation.
+(insn insn__nopmb "_nopmb" ((P arg0))
+	(valid-modes TODO)
+	(disasm special)
+	(code () "0f 1f /0" ((reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__usalc "_usalc" ()
+	(valid-modes TODO)
+	(disasm special)
+	(code () "d6" ())
+)
+
+# WARNING: not tested!
+# _sxacc = sign extend to accumulator. (r/e)ax <- s/x((r/e)ax.lo).
+# Aliases: cbw/cwde/cdqe.
+(insn insn__sxacc "_sxacc" ()
+	(valid-modes TODO)
+	(disasm special)
+	(code () "98" ())
+)
+
+# WARNING: not tested!
+# _sxdax = sign extend to dax. (r/e)dx:(r/e)ax <- sx((r/e)ax).
+# Aliases: cwd/cdq/cqo
+(insn insn__sxdax "_sxdax" ()
+	(valid-modes TODO)
+	(disasm special)
+	(code () "99" ())
+)
+
+# The SAHF instruction can only be executed in 64-bit mode if supported by the processor
+# implementation. Check the status of ECX bit 0 returned by CPUID function 8000_0001h to verify that
+# the processor supports SAHF in 64-bit mode. --AMD manual
+(insn insn_sahf "sahf" ()
+	(valid-modes TODO)
+	(code () "9e" ())
+)
+
+# The LAHF instruction can only be executed in 64-bit mode if supported by the processor
+# implementation. Check the status of ECX bit 0 returned by CPUID function 8000_0001h to verify that
+# the processor supports LAHF in 64-bit mode. --AMD manual
+(insn insn_lahf "lahf" ()
+	(valid-modes TODO)
+	(code () "9f" ())
+)
+
+(insn insn_cmc "cmc" ()
+	(valid-modes TODO)
+	(code () "f5" ())
+)
+
+(insn insn_clc "clc" ()
+	(valid-modes TODO)
+	(code () "f8" ())
+)
+
+(insn insn_stc "stc" ()
+	(valid-modes TODO)
+	(code () "f9" ())
+)
+
+(insn insn_cld "cld" ()
+	(valid-modes TODO)
+	(code () "fc" ())
+)
+
+(insn insn_std "std" ()
+	(valid-modes TODO)
+	(code () "fd" ())
+)
+
+(insn insn_lea "lea" ((P arg0) (Q arg1))
+	(valid-modes TODO)
+	(code () "8d /r /mod_m" ((reg_gr size_osz) (mem_ea_eal size_asz)))
+)
+
+(insn insn_into "into" ()
+	(valid-modes TODO)
+	(code (etag_no64) "ce" ())
+)
+
+# _cmul* is officially "signed multiply" (386 intel manual, which refers to it as IMUL) but it can be used for
+# unsigned multiplication too. destination operand has same size as source operands.
+(insn insn__cmul3 "_cmul3" ((P arg0) (P arg1) (P arg2))
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_imm64_sx32) "69 /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+	(code (etag_imm64_sx32 etag_sx_byte) "6b /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem) (imm_1st size_osz)))
+)
+
+(insn insn__cmul2 "_cmul2" ((P arg0) (P arg1))
+	(valid-modes TODO)
+	(disasm special)
+	(code () "0f af /r" ((reg_gr size_osz) (reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__imulb "_imulb" ((B1 arg0))
+	(valid-modes TODO)
+	(disasm special)
+	(code () "f6 /5" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn_imul "imul" ((P arg0))
+	(valid-modes TODO)
+	(code () "f7 /5" ((reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__mulb "_mulb" ((B1 arg0))
+	(valid-modes TODO)
+	(disasm special)
+	(code () "f6 /4" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn_mul "mul" ((P arg0))
+	(valid-modes TODO)
+	(code () "f7 /4" ((reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__divb "_divb" ((B1 arg0))
+	(valid-modes TODO)
+	(disasm special)
+	(code () "f6 /6" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn_div "div" ((P arg0))
+	(valid-modes TODO)
+	(code () "f7 /6" ((reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__idivb "_idivb" ((B1 arg0))
+	(valid-modes TODO)
+	(disasm special)
+	(code () "f6 /7" ((reg_gr B1 reg_or_mem)))
+)
+
+(insn insn_idiv "idiv" ((P arg0))
+	(valid-modes TODO)
+	(code () "f7 /7" ((reg_gr size_osz reg_or_mem)))
+)
+
+(insn insn__uint1 "_uint1" ()
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "f1" ())
+)
+
+(insn insn__jo "jo" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code (etag_imm64_sx32 etag_sx_byte etag_has_cc etag_relative) "70" ((imm_1st size_osz_64in64)))
+	(code (etag_imm64_sx32 etag_has_cc etag_relative) "0f 80" ((imm_1st size_osz_64in64)))
+)
+
+(insn insn__jno "jno" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code (etag_imm64_sx32 etag_sx_byte etag_has_cc etag_relative) "71" ((imm_1st size_osz_64in64)))
+	(code (etag_imm64_sx32 etag_has_cc etag_relative) "0f 81" ((imm_1st size_osz_64in64)))
+)
+
+(insn insn__jc "jc" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code (etag_imm64_sx32 etag_sx_byte etag_has_cc etag_relative) "72" ((imm_1st size_osz_64in64)))
+	(code (etag_imm64_sx32 etag_has_cc etag_relative) "0f 82" ((imm_1st size_osz_64in64)))
+)
+
+(insn insn__jnc "jnc" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code (etag_imm64_sx32 etag_sx_byte etag_has_cc etag_relative) "73" ((imm_1st size_osz_64in64)))
+	(code (etag_imm64_sx32 etag_has_cc etag_relative) "0f 83" ((imm_1st size_osz_64in64)))
+)
+
+(insn insn__jz "jz" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code (etag_imm64_sx32 etag_sx_byte etag_has_cc etag_relative) "74" ((imm_1st size_osz_64in64)))
+	(code (etag_imm64_sx32 etag_has_cc etag_relative) "0f 84" ((imm_1st size_osz_64in64)))
+)
+
+(insn insn__jnz "jnz" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code (etag_imm64_sx32 etag_sx_byte etag_has_cc etag_relative) "75" ((imm_1st size_osz_64in64)))
+	(code (etag_imm64_sx32 etag_has_cc etag_relative) "0f 85" ((imm_1st size_osz_64in64)))
+)
+
+(insn insn__jbe "jbe" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code (etag_imm64_sx32 etag_sx_byte etag_has_cc etag_relative) "76" ((imm_1st size_osz_64in64)))
+	(code (etag_imm64_sx32 etag_has_cc etag_relative) "0f 86" ((imm_1st size_osz_64in64)))
+)
+
+(insn insn__ja "ja" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code (etag_imm64_sx32 etag_sx_byte etag_has_cc etag_relative) "77" ((imm_1st size_osz_64in64)))
+	(code (etag_imm64_sx32 etag_has_cc etag_relative) "0f 87" ((imm_1st size_osz_64in64)))
+)
+
+(insn insn__js "js" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code (etag_imm64_sx32 etag_sx_byte etag_has_cc etag_relative) "78" ((imm_1st size_osz_64in64)))
+	(code (etag_imm64_sx32 etag_has_cc etag_relative) "0f 88" ((imm_1st size_osz_64in64)))
+)
+
+(insn insn__jns "jns" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code (etag_imm64_sx32 etag_sx_byte etag_has_cc etag_relative) "79" ((imm_1st size_osz_64in64)))
+	(code (etag_imm64_sx32 etag_has_cc etag_relative) "0f 89" ((imm_1st size_osz_64in64)))
+)
+
+(insn insn__jp "jp" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code (etag_imm64_sx32 etag_sx_byte etag_has_cc etag_relative) "7a" ((imm_1st size_osz_64in64)))
+	(code (etag_imm64_sx32 etag_has_cc etag_relative) "0f 8a" ((imm_1st size_osz_64in64)))
+)
+
+(insn insn__jnp "jnp" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code (etag_imm64_sx32 etag_sx_byte etag_has_cc etag_relative) "7b" ((imm_1st size_osz_64in64)))
+	(code (etag_imm64_sx32 etag_has_cc etag_relative) "0f 8b" ((imm_1st size_osz_64in64)))
+)
+
+(insn insn__jl "jl" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code (etag_imm64_sx32 etag_sx_byte etag_has_cc etag_relative) "7c" ((imm_1st size_osz_64in64)))
+	(code (etag_imm64_sx32 etag_has_cc etag_relative) "0f 8c" ((imm_1st size_osz_64in64)))
+)
+
+(insn insn__jge "jge" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code (etag_imm64_sx32 etag_sx_byte etag_has_cc etag_relative) "7d" ((imm_1st size_osz_64in64)))
+	(code (etag_imm64_sx32 etag_has_cc etag_relative) "0f 8d" ((imm_1st size_osz_64in64)))
+)
+
+(insn insn__jle "jle" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code (etag_imm64_sx32 etag_sx_byte etag_has_cc etag_relative) "7e" ((imm_1st size_osz_64in64)))
+	(code (etag_imm64_sx32 etag_has_cc etag_relative) "0f 8e" ((imm_1st size_osz_64in64)))
+)
+
+(insn insn__jg "jg" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code (etag_imm64_sx32 etag_sx_byte etag_has_cc etag_relative) "7f" ((imm_1st size_osz_64in64)))
+	(code (etag_imm64_sx32 etag_has_cc etag_relative) "0f 8f" ((imm_1st size_osz_64in64)))
+)
+
+(insn insn_call "call" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code (etag_imm64_sx32 etag_relative) "e8" ((imm_1st size_osz_64in64)))
+)
+
+(insn insn__calli "_calli" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "ff /2" ((reg_gr size_osz_64in64 reg_or_mem)))
+)
+
+(insn insn__callfd "_callfd" ((P arg0) (B2 arg1))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_no64) "9a" ((imm_1st size_osz) (imm_2nd B2)))
+)
+
+(insn insn__callfi "_callfi" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "ff /3 /mod_m" ((mem_ea_seg size_osz_64in64)))
+)
+
+(insn insn_jmp "jmp" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code (etag_imm64_sx32 etag_relative) "e9" ((imm_1st size_osz_64in64)))
+	(code (etag_imm64_sx32 etag_sx_byte etag_relative) "eb" ((imm_1st size_osz_64in64)))
+)
+
+(insn insn__jmpi "_jmpi" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "ff /4" ((reg_gr size_osz_64in64 reg_or_mem)))
+)
+
+(insn insn__jmpfd "_jmpfd" ((P arg0) (B2 arg1))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_no64) "ea" ((imm_1st size_osz) (imm_2nd B2)))
+)
+
+(insn insn__jmpfi "_jmpfi" ((P arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "ff /5 /mod_m" ((mem_ea_seg size_osz_64in64)))
+)
+
+(insn insn__retnum "_retnum" ((B2 arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "c2" ((imm_1st B2)))
+)
+
+(insn insn__ret "_ret" ((B2 arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "c3" ((imm_implict B2 0x0)))
+)
+
+(insn insn__retfnum "_retfnum" ((B2 arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "ca" ((imm_1st B2)))
+)
+
+(insn insn__retf "_retf" ((B2 arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "cb" ((imm_implict B2 0x0)))
+)
+
+(insn insn__int3 "_int3" ((B1 arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "cc" ((imm_implict B1 0x3)))
+)
+
+(insn insn_int "int" ((B1 arg0))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(code () "cd" ((imm_1st B1)))
+)
+
+(insn insn__iret "_iret" ()
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(disasm special)
+	(code () "cf" ())
+)
+
+(insn insn__loopnz "_loopnz" ((P arg0) (Q arg1))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_imm64_sx32 etag_sx_byte etag_relative) "e0" ((imm_1st size_osz_64in64) (reg_gr size_asz 0x1)))
+)
+
+(insn insn__loopz "_loopz" ((P arg0) (Q arg1))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_imm64_sx32 etag_sx_byte etag_relative) "e1" ((imm_1st size_osz_64in64) (reg_gr size_asz 0x1)))
+)
+
+(insn insn__loop "_loop" ((P arg0) (Q arg1))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_imm64_sx32 etag_sx_byte etag_relative) "e2" ((imm_1st size_osz_64in64) (reg_gr size_asz 0x1)))
+)
+
+(insn insn__jrcxz "_jrcxz" ((P arg0) (Q arg1))
+	(flags itag_ctrlxfer)
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_imm64_sx32 etag_sx_byte etag_relative) "e3" ((imm_1st size_osz_64in64) (reg_gr size_asz 0x1)))
+)
+
+# asm: fxch by itself is fxch st1 alias.
+(insn insn__fxch "_fxch" ((B10 arg0))
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_reg_rm) "d9 /1 /mod_3" ((reg_st B10)))
+)
+
+(insn insn_fst "fst" ((P arg0))
+	(valid-modes TODO)
+	(code () "d9 /2 /mod_m" ((mem_ea B4)))
+	(code () "dd /2 /mod_m" ((mem_ea B8)))
+	(code (etag_reg_rm) "dd /2 /mod_3" ((reg_st B10)))
+)
+
+(insn insn_fstp "fstp" ((P arg0))
+	(valid-modes TODO)
+	(code () "d9 /3 /mod_m" ((mem_ea B4)))
+	(code () "dd /3 /mod_m" ((mem_ea B8)))
+	(code () "db /7 /mod_m" ((mem_ea B10)))
+	(code (etag_reg_rm) "dd /3 /mod_3" ((reg_st B10)))
+)
+
+# Whether or not WAIT is used depends on whether this shows up as "stcw" or "fnstcw".
+# itag_fwaitable instructions must begin with _f.
+# Note: fstcw -> wait; fnstcw.
+# If insn is fwaitable, write "fn" by default; write "f" if preceded by fwait.
+(insn insn__fstcw "_fstcw" ((B2 arg0))
+	(flags itag_fwaitable)
+	(valid-modes TODO)
+	(code () "d9 /7 /mod_m" ((mem_ea B2)))
+)
+
+(insn insn_fldcw "fldcw" ((B2 arg0))
+	(valid-modes TODO)
+	(code () "d9 /5 /mod_m" ((mem_ea B2)))
+)
+
+(insn insn_fld "fld" ((P arg0))
+	(valid-modes TODO)
+	(code () "d9 /0 /mod_m" ((mem_ea B4)))
+	(code () "dd /0 /mod_m" ((mem_ea B8)))
+	(code () "db /5 /mod_m" ((mem_ea B10)))
+	(code (etag_reg_rm) "d9 /0 /mod_3" ((reg_st B10)))
+)
+
+(insn insn__fmul1 "_fmul1" ((P arg0))
+	(valid-modes TODO)
+	(disasm special)
+	(code () "d8 /1 /mod_m" ((mem_ea B4)))
+	(code () "dc /1 /mod_m" ((mem_ea B8)))
+)
+
+(insn insn__fmul2 "_fmul2" ((B10 arg0) (B10 arg1))
+	(valid-modes TODO)
+	(disasm special)
+	(code (etag_reg_rm) "d8 /1 /mod_3" ((reg_st B10 0x0) (reg_st B10)))
+	(code (etag_reg_rm) "dc /1 /mod_3" ((reg_st B10) (reg_st B10 0x0)))
+)
+
+# asm: fmulp by itself is same as fmulp st1,st0
+(insn insn__fmulp "fmulp" ((B10 arg0) (B10 arg1))
+	(valid-modes TODO)
+	(code (etag_reg_rm) "de /1 /mod_3" ((reg_st B10) (reg_st B10 0x0)))
+)
+
+(insn insn_fimul "fimul" ((P arg0))
+	(valid-modes TODO)
+	(code () "da /1 /mod_m" ((mem_ea B4)))
+	(code () "de /1 /mod_m" ((mem_ea B2)))
+)
+
+# Note: for test case purposes, we want WAIT to be last.
+(insn insn__wait "wait" ()
+	(valid-modes TODO)
+	(code () "9b" ())
+)
+
+#==============================================================================================================================
+# End of CPU Instruction Set Definition
+#==============================================================================================================================
+
+)))
+
+(debug "end load x86 instruction set")
+
+x86-iset)
