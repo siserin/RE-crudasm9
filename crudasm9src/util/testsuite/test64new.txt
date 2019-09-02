@@ -1,0 +1,519 @@
+; disassembly of test64.bin
+; org 0x0000000000000100
+bits 64
+loc_0000000000000100:  adc byte [rax],0x11
+loc_0000000000000103:  lock adc byte [rax],0x11
+loc_0000000000000107:  adc dword [rax],0x11111111
+loc_000000000000010d:  lock adc dword [rax],0x11111111
+loc_0000000000000114:  adc dword [rax],byte +0x11
+loc_0000000000000117:  lock adc dword [rax],byte +0x11
+loc_000000000000011b:  adc [rax],al
+loc_000000000000011d:  lock adc [rax],al
+loc_0000000000000120:  adc al,[rax]
+loc_0000000000000122:  adc [rax],eax
+loc_0000000000000124:  lock adc [rax],eax
+loc_0000000000000127:  adc eax,[rax]
+loc_0000000000000129:  adc al,0x11
+loc_000000000000012b:  adc eax,0x11111111
+loc_0000000000000130:  add byte [rax],0x11
+loc_0000000000000133:  lock add byte [rax],0x11
+loc_0000000000000137:  add dword [rax],0x11111111
+loc_000000000000013d:  lock add dword [rax],0x11111111
+loc_0000000000000144:  add dword [rax],byte +0x11
+loc_0000000000000147:  lock add dword [rax],byte +0x11
+loc_000000000000014b:  add [rax],al
+loc_000000000000014d:  lock add [rax],al
+loc_0000000000000150:  add al,[rax]
+loc_0000000000000152:  add [rax],eax
+loc_0000000000000154:  lock add [rax],eax
+loc_0000000000000157:  add eax,[rax]
+loc_0000000000000159:  add al,0x11
+loc_000000000000015b:  add eax,0x11111111
+loc_0000000000000160:  or byte [rax],0x11
+loc_0000000000000163:  lock or byte [rax],0x11
+loc_0000000000000167:  or dword [rax],0x11111111
+loc_000000000000016d:  lock or dword [rax],0x11111111
+loc_0000000000000174:  or dword [rax],byte +0x11
+loc_0000000000000177:  lock or dword [rax],byte +0x11
+loc_000000000000017b:  or [rax],al
+loc_000000000000017d:  lock or [rax],al
+loc_0000000000000180:  or al,[rax]
+loc_0000000000000182:  or [rax],eax
+loc_0000000000000184:  lock or [rax],eax
+loc_0000000000000187:  or eax,[rax]
+loc_0000000000000189:  or al,0x11
+loc_000000000000018b:  or eax,0x11111111
+loc_0000000000000190:  sbb byte [rax],0x11
+loc_0000000000000193:  lock sbb byte [rax],0x11
+loc_0000000000000197:  sbb dword [rax],0x11111111
+loc_000000000000019d:  lock sbb dword [rax],0x11111111
+loc_00000000000001a4:  sbb dword [rax],byte +0x11
+loc_00000000000001a7:  lock sbb dword [rax],byte +0x11
+loc_00000000000001ab:  sbb [rax],al
+loc_00000000000001ad:  lock sbb [rax],al
+loc_00000000000001b0:  sbb al,[rax]
+loc_00000000000001b2:  sbb [rax],eax
+loc_00000000000001b4:  lock sbb [rax],eax
+loc_00000000000001b7:  sbb eax,[rax]
+loc_00000000000001b9:  sbb al,0x11
+loc_00000000000001bb:  sbb eax,0x11111111
+loc_00000000000001c0:  and byte [rax],0x11
+loc_00000000000001c3:  lock and byte [rax],0x11
+loc_00000000000001c7:  and dword [rax],0x11111111
+loc_00000000000001cd:  lock and dword [rax],0x11111111
+loc_00000000000001d4:  and dword [rax],byte +0x11
+loc_00000000000001d7:  lock and dword [rax],byte +0x11
+loc_00000000000001db:  and [rax],al
+loc_00000000000001dd:  lock and [rax],al
+loc_00000000000001e0:  and al,[rax]
+loc_00000000000001e2:  and [rax],eax
+loc_00000000000001e4:  lock and [rax],eax
+loc_00000000000001e7:  and eax,[rax]
+loc_00000000000001e9:  and al,0x11
+loc_00000000000001eb:  and eax,0x11111111
+loc_00000000000001f0:  sub byte [rax],0x11
+loc_00000000000001f3:  lock sub byte [rax],0x11
+loc_00000000000001f7:  sub dword [rax],0x11111111
+loc_00000000000001fd:  lock sub dword [rax],0x11111111
+loc_0000000000000204:  sub dword [rax],byte +0x11
+loc_0000000000000207:  lock sub dword [rax],byte +0x11
+loc_000000000000020b:  sub [rax],al
+loc_000000000000020d:  lock sub [rax],al
+loc_0000000000000210:  sub al,[rax]
+loc_0000000000000212:  sub [rax],eax
+loc_0000000000000214:  lock sub [rax],eax
+loc_0000000000000217:  sub eax,[rax]
+loc_0000000000000219:  sub al,0x11
+loc_000000000000021b:  sub eax,0x11111111
+loc_0000000000000220:  xor byte [rax],0x11
+loc_0000000000000223:  lock xor byte [rax],0x11
+loc_0000000000000227:  xor dword [rax],0x11111111
+loc_000000000000022d:  lock xor dword [rax],0x11111111
+loc_0000000000000234:  xor dword [rax],byte +0x11
+loc_0000000000000237:  lock xor dword [rax],byte +0x11
+loc_000000000000023b:  xor [rax],al
+loc_000000000000023d:  lock xor [rax],al
+loc_0000000000000240:  xor al,[rax]
+loc_0000000000000242:  xor [rax],eax
+loc_0000000000000244:  lock xor [rax],eax
+loc_0000000000000247:  xor eax,[rax]
+loc_0000000000000249:  xor al,0x11
+loc_000000000000024b:  xor eax,0x11111111
+loc_0000000000000250:  cmp byte [rax],0x11
+loc_0000000000000253:  cmp dword [rax],0x11111111
+loc_0000000000000259:  cmp dword [rax],byte +0x11
+loc_000000000000025c:  cmp [rax],al
+loc_000000000000025e:  cmp al,[rax]
+loc_0000000000000260:  cmp [rax],eax
+loc_0000000000000262:  cmp eax,[rax]
+loc_0000000000000264:  cmp al,0x11
+loc_0000000000000266:  cmp eax,0x11111111
+loc_000000000000026b:  rol byte [rax],0x11
+loc_000000000000026e:  rol dword [rax],0x11
+loc_0000000000000271:  rol byte [rax],0x01
+loc_0000000000000273:  rol dword [rax],0x01
+loc_0000000000000275:  rol byte [rax],cl
+loc_0000000000000277:  rol dword [rax],cl
+loc_0000000000000279:  ror byte [rax],0x11
+loc_000000000000027c:  ror dword [rax],0x11
+loc_000000000000027f:  ror byte [rax],0x01
+loc_0000000000000281:  ror dword [rax],0x01
+loc_0000000000000283:  ror byte [rax],cl
+loc_0000000000000285:  ror dword [rax],cl
+loc_0000000000000287:  rcl byte [rax],0x11
+loc_000000000000028a:  rcl dword [rax],0x11
+loc_000000000000028d:  rcl byte [rax],0x01
+loc_000000000000028f:  rcl dword [rax],0x01
+loc_0000000000000291:  rcl byte [rax],cl
+loc_0000000000000293:  rcl dword [rax],cl
+loc_0000000000000295:  rcr byte [rax],0x11
+loc_0000000000000298:  rcr dword [rax],0x11
+loc_000000000000029b:  rcr byte [rax],0x01
+loc_000000000000029d:  rcr dword [rax],0x01
+loc_000000000000029f:  rcr byte [rax],cl
+loc_00000000000002a1:  rcr dword [rax],cl
+loc_00000000000002a3:  shl byte [rax],0x11
+loc_00000000000002a6:  shl dword [rax],0x11
+loc_00000000000002a9:  shl byte [rax],0x01
+loc_00000000000002ab:  shl dword [rax],0x01
+loc_00000000000002ad:  shl byte [rax],cl
+loc_00000000000002af:  shl dword [rax],cl
+loc_00000000000002b1:  shr byte [rax],0x11
+loc_00000000000002b4:  shr dword [rax],0x11
+loc_00000000000002b7:  shr byte [rax],0x01
+loc_00000000000002b9:  shr dword [rax],0x01
+loc_00000000000002bb:  shr byte [rax],cl
+loc_00000000000002bd:  shr dword [rax],cl
+loc_00000000000002bf:  sar byte [rax],0x11
+loc_00000000000002c2:  sar dword [rax],0x11
+loc_00000000000002c5:  sar byte [rax],0x01
+loc_00000000000002c7:  sar dword [rax],0x01
+loc_00000000000002c9:  sar byte [rax],cl
+loc_00000000000002cb:  sar dword [rax],cl
+loc_00000000000002cd:  invept rax,[rax]
+loc_00000000000002d2:  invvpid rax,[rax]
+loc_00000000000002d7:  vmcall
+loc_00000000000002da:  vmclear [rax]
+loc_00000000000002de:  vmlaunch
+loc_00000000000002e1:  vmresume
+loc_00000000000002e4:  vmptrld [rax]
+loc_00000000000002e7:  vmptrst [rax]
+loc_00000000000002ea:  vmread [rax],rax
+loc_00000000000002ed:  vmwrite rax,[rax]
+loc_00000000000002f0:  vmxoff
+loc_00000000000002f3:  vmxon [rax]
+loc_00000000000002f7:  fxtract
+loc_00000000000002f9:  phaddw mm0,[rax]
+loc_00000000000002fd:  phaddw xmm0,[rax]
+loc_0000000000000302:  phaddd mm0,[rax]
+loc_0000000000000306:  phaddd xmm0,[rax]
+loc_000000000000030b:  f2xm1
+loc_000000000000030d:  fcos
+loc_000000000000030f:  movaps xmm0,[rax]
+loc_0000000000000312:  movaps [rax],xmm0
+loc_0000000000000315:  stmxcsr [rax]
+loc_0000000000000318:  ldmxcsr [rax]
+loc_000000000000031b:  movdqu xmm0,[rax]
+loc_000000000000031f:  movdqu [rax],xmm0
+loc_0000000000000323:  movsd xmm0,[rax]
+loc_0000000000000327:  movsd [rax],xmm0
+loc_000000000000032b:  movss xmm0,[rax]
+loc_000000000000032f:  movss [rax],xmm0
+loc_0000000000000333:  movdqa xmm0,[rax]
+loc_0000000000000337:  movdqa [rax],xmm0
+loc_000000000000033b:  prefetch [rax]
+loc_000000000000033e:  prefetchw [rax]
+loc_0000000000000341:  mov [rax],al
+loc_0000000000000343:  mov al,[rax]
+loc_0000000000000345:  mov [rax],eax
+loc_0000000000000347:  mov eax,[rax]
+loc_0000000000000349:  mov al,[qword 0x2222222222222222]
+loc_0000000000000352:  mov [qword 0x2222222222222222],al
+loc_000000000000035b:  mov eax,[qword 0x2222222222222222]
+loc_0000000000000364:  mov [qword 0x2222222222222222],eax
+loc_000000000000036d:  mov al,0x11
+loc_000000000000036f:  mov eax,0x11111111
+loc_0000000000000374:  mov byte [rax],0x11
+loc_0000000000000377:  mov dword [rax],0x11111111
+loc_000000000000037d:  insb
+loc_000000000000037e:  rep insb
+loc_0000000000000380:  rep insb
+loc_0000000000000382:  insd
+loc_0000000000000383:  rep insd
+loc_0000000000000385:  rep insd
+loc_0000000000000387:  outsb
+loc_0000000000000388:  rep outsb
+loc_000000000000038a:  rep outsb
+loc_000000000000038c:  outsd
+loc_000000000000038d:  rep outsd
+loc_000000000000038f:  rep outsd
+loc_0000000000000391:  movsxd rax,[rax]
+loc_0000000000000394:  rsm
+loc_0000000000000396:  ud2
+loc_0000000000000398:  sysenter
+loc_000000000000039a:  sysexit
+loc_000000000000039c:  syscall
+loc_000000000000039e:  sysret
+loc_00000000000003a0:  sgdt [rax]
+loc_00000000000003a3:  sidt [rax]
+loc_00000000000003a6:  lgdt [rax]
+loc_00000000000003a9:  lidt [rax]
+loc_00000000000003ac:  sldt word [rax]
+loc_00000000000003af:  sldt eax
+loc_00000000000003b2:  lldt [rax]
+loc_00000000000003b5:  smsw word [rax]
+loc_00000000000003b8:  smsw eax
+loc_00000000000003bb:  lmsw [rax]
+loc_00000000000003be:  str word [rax]
+loc_00000000000003c1:  str eax
+loc_00000000000003c4:  verr [rax]
+loc_00000000000003c7:  verw [rax]
+loc_00000000000003ca:  wbinvd
+loc_00000000000003cc:  wrmsr
+loc_00000000000003ce:  rdmsr
+loc_00000000000003d0:  rdpmc
+loc_00000000000003d2:  rdtsc
+loc_00000000000003d4:  clts
+loc_00000000000003d6:  cpuid
+loc_00000000000003d8:  invd
+loc_00000000000003da:  invlpg [rax]
+loc_00000000000003dd:  lar eax,eax
+loc_00000000000003e0:  lar eax,word [rax]
+loc_00000000000003e3:  lsl eax,eax
+loc_00000000000003e6:  lsl eax,word [rax]
+loc_00000000000003e9:  ltr [rax]
+loc_00000000000003ec:  mov rax,cr0
+loc_00000000000003ef:  mov cr0,rax
+loc_00000000000003f2:  mov rax,dr0
+loc_00000000000003f5:  mov dr0,rax
+loc_00000000000003f8:  lss eax,[rax]
+loc_00000000000003fb:  lfs eax,[rax]
+loc_00000000000003fe:  lgs eax,[rax]
+loc_0000000000000401:  bsf eax,[rax]
+loc_0000000000000404:  bsr eax,[rax]
+loc_0000000000000407:  bt [rax],eax
+loc_000000000000040a:  bt eax,eax
+loc_000000000000040d:  bt dword [rax],byte 0x11
+loc_0000000000000411:  bts dword [rax],eax
+loc_0000000000000414:  lock bts dword [rax],eax
+loc_0000000000000418:  bts dword [rax],byte 0x11
+loc_000000000000041c:  lock bts dword [rax],byte 0x11
+loc_0000000000000421:  btr dword [rax],eax
+loc_0000000000000424:  lock btr dword [rax],eax
+loc_0000000000000428:  btr dword [rax],byte 0x11
+loc_000000000000042c:  lock btr dword [rax],byte 0x11
+loc_0000000000000431:  btc dword [rax],eax
+loc_0000000000000434:  lock btc dword [rax],eax
+loc_0000000000000438:  btc dword [rax],byte 0x11
+loc_000000000000043c:  lock btc dword [rax],byte 0x11
+loc_0000000000000441:  bswap eax
+loc_0000000000000443:  cmpxchg [rax],al
+loc_0000000000000446:  lock cmpxchg [rax],al
+loc_000000000000044a:  cmpxchg [rax],eax
+loc_000000000000044d:  lock cmpxchg [rax],eax
+loc_0000000000000451:  cmpxchg8b [rax]
+loc_0000000000000454:  lock cmpxchg8b [rax]
+loc_0000000000000458:  movzx eax,byte [rax]
+loc_000000000000045b:  movzx eax,word [rax]
+loc_000000000000045e:  movsx eax,byte [rax]
+loc_0000000000000461:  movsx eax,word [rax]
+loc_0000000000000464:  shld [rax],eax,0x11
+loc_0000000000000468:  shld [rax],eax,cl
+loc_000000000000046b:  shrd [rax],eax,0x11
+loc_000000000000046f:  shrd [rax],eax,cl
+loc_0000000000000472:  xadd [rax],al
+loc_0000000000000475:  lock xadd [rax],al
+loc_0000000000000479:  xadd [rax],eax
+loc_000000000000047c:  lock xadd [rax],eax
+loc_0000000000000480:  enter 0x1111,0x11
+loc_0000000000000484:  leave
+loc_0000000000000485:  hlt
+loc_0000000000000486:  cli
+loc_0000000000000487:  sti
+loc_0000000000000488:  in al,0x11
+loc_000000000000048a:  in eax,0x11
+loc_000000000000048c:  in al,dx
+loc_000000000000048d:  in eax,dx
+loc_000000000000048e:  out 0x11,al
+loc_0000000000000490:  out 0x11,eax
+loc_0000000000000492:  out dx,al
+loc_0000000000000493:  out dx,eax
+loc_0000000000000494:  cmovo eax,[rax]
+loc_0000000000000497:  cmovno eax,[rax]
+loc_000000000000049a:  cmovc eax,[rax]
+loc_000000000000049d:  cmovnc eax,[rax]
+loc_00000000000004a0:  cmovz eax,[rax]
+loc_00000000000004a3:  cmovnz eax,[rax]
+loc_00000000000004a6:  cmovbe eax,[rax]
+loc_00000000000004a9:  cmova eax,[rax]
+loc_00000000000004ac:  cmovs eax,[rax]
+loc_00000000000004af:  cmovns eax,[rax]
+loc_00000000000004b2:  cmovp eax,[rax]
+loc_00000000000004b5:  cmovnp eax,[rax]
+loc_00000000000004b8:  cmovl eax,[rax]
+loc_00000000000004bb:  cmovge eax,[rax]
+loc_00000000000004be:  cmovle eax,[rax]
+loc_00000000000004c1:  cmovg eax,[rax]
+loc_00000000000004c4:  emms
+loc_00000000000004c6:  fxrstor [rax]
+loc_00000000000004c9:  fxsave [rax]
+loc_00000000000004cc:  push fs
+loc_00000000000004ce:  push gs
+loc_00000000000004d0:  pop fs
+loc_00000000000004d2:  pop gs
+loc_00000000000004d4:  push rax
+loc_00000000000004d5:  push qword +0x11111111
+loc_00000000000004da:  push byte +0x11
+loc_00000000000004dc:  push qword [rax]
+loc_00000000000004de:  pop rax
+loc_00000000000004df:  pop qword [rax]
+loc_00000000000004e1:  mov es,[rax]
+loc_00000000000004e3:  mov ss,[rax]
+loc_00000000000004e5:  mov ds,[rax]
+loc_00000000000004e7:  mov fs,[rax]
+loc_00000000000004e9:  mov gs,[rax]
+loc_00000000000004eb:  mov eax,es
+loc_00000000000004ed:  mov eax,cs
+loc_00000000000004ef:  mov eax,ss
+loc_00000000000004f1:  mov eax,ds
+loc_00000000000004f3:  mov eax,fs
+loc_00000000000004f5:  mov eax,gs
+loc_00000000000004f7:  mov word [rax],es
+loc_00000000000004f9:  mov word [rax],cs
+loc_00000000000004fb:  mov word [rax],ss
+loc_00000000000004fd:  mov word [rax],ds
+loc_00000000000004ff:  mov word [rax],fs
+loc_0000000000000501:  mov word [rax],gs
+loc_0000000000000503:  pushfq
+loc_0000000000000504:  popfq
+loc_0000000000000505:  movsb
+loc_0000000000000506:  rep movsb
+loc_0000000000000508:  rep movsb
+loc_000000000000050a:  movsd
+loc_000000000000050b:  rep movsd
+loc_000000000000050d:  rep movsd
+loc_000000000000050f:  cmpsb
+loc_0000000000000510:  repnz cmpsb
+loc_0000000000000512:  repz cmpsb
+loc_0000000000000514:  cmpsd
+loc_0000000000000515:  repnz cmpsd
+loc_0000000000000517:  repz cmpsd
+loc_0000000000000519:  stosb
+loc_000000000000051a:  rep stosb
+loc_000000000000051c:  rep stosb
+loc_000000000000051e:  stosd
+loc_000000000000051f:  rep stosd
+loc_0000000000000521:  rep stosd
+loc_0000000000000523:  lodsb
+loc_0000000000000524:  rep lodsb
+loc_0000000000000526:  rep lodsb
+loc_0000000000000528:  lodsd
+loc_0000000000000529:  rep lodsd
+loc_000000000000052b:  rep lodsd
+loc_000000000000052d:  scasb
+loc_000000000000052e:  repnz scasb
+loc_0000000000000530:  repz scasb
+loc_0000000000000532:  scasd
+loc_0000000000000533:  repnz scasd
+loc_0000000000000535:  repz scasd
+loc_0000000000000537:  test [rax],al
+loc_0000000000000539:  test [rax],eax
+loc_000000000000053b:  test al,0x11
+loc_000000000000053d:  test eax,0x11111111
+loc_0000000000000542:  test byte [rax],0x11
+loc_0000000000000545:  test dword [rax],0x11111111
+loc_000000000000054b:  xchg [rax],al
+loc_000000000000054d:  lock xchg [rax],al
+loc_0000000000000550:  xchg [rax],eax
+loc_0000000000000552:  lock xchg [rax],eax
+loc_0000000000000555:  nop
+loc_0000000000000556:  not byte [rax]
+loc_0000000000000558:  lock not byte [rax]
+loc_000000000000055b:  not dword [rax]
+loc_000000000000055d:  lock not dword [rax]
+loc_0000000000000560:  neg byte [rax]
+loc_0000000000000562:  lock neg byte [rax]
+loc_0000000000000565:  neg dword [rax]
+loc_0000000000000567:  lock neg dword [rax]
+loc_000000000000056a:  inc byte [rax]
+loc_000000000000056c:  lock inc byte [rax]
+loc_000000000000056f:  inc dword [rax]
+loc_0000000000000571:  lock inc dword [rax]
+loc_0000000000000574:  dec byte [rax]
+loc_0000000000000576:  lock dec byte [rax]
+loc_0000000000000579:  dec dword [rax]
+loc_000000000000057b:  lock dec dword [rax]
+loc_000000000000057e:  xlatb
+loc_000000000000057f:  seto [rax]
+loc_0000000000000582:  setno [rax]
+loc_0000000000000585:  setc [rax]
+loc_0000000000000588:  setnc [rax]
+loc_000000000000058b:  setz [rax]
+loc_000000000000058e:  setnz [rax]
+loc_0000000000000591:  setbe [rax]
+loc_0000000000000594:  seta [rax]
+loc_0000000000000597:  sets [rax]
+loc_000000000000059a:  setns [rax]
+loc_000000000000059d:  setp [rax]
+loc_00000000000005a0:  setnp [rax]
+loc_00000000000005a3:  setl [rax]
+loc_00000000000005a6:  setge [rax]
+loc_00000000000005a9:  setle [rax]
+loc_00000000000005ac:  setg [rax]
+loc_00000000000005af:  nop dword [rax]
+loc_00000000000005b2:  salc
+loc_00000000000005b3:  cwde
+loc_00000000000005b4:  cdq
+loc_00000000000005b5:  sahf
+loc_00000000000005b6:  lahf
+loc_00000000000005b7:  cmc
+loc_00000000000005b8:  clc
+loc_00000000000005b9:  stc
+loc_00000000000005ba:  cld
+loc_00000000000005bb:  std
+loc_00000000000005bc:  lea eax,[rax]
+loc_00000000000005be:  imul eax,[rax],0x11111111
+loc_00000000000005c4:  imul eax,[rax],byte +0x11
+loc_00000000000005c7:  imul eax,[rax]
+loc_00000000000005ca:  imul byte [rax]
+loc_00000000000005cc:  imul dword [rax]
+loc_00000000000005ce:  mul byte [rax]
+loc_00000000000005d0:  mul dword [rax]
+loc_00000000000005d2:  div byte [rax]
+loc_00000000000005d4:  div dword [rax]
+loc_00000000000005d6:  idiv byte [rax]
+loc_00000000000005d8:  idiv dword [rax]
+loc_00000000000005da:  int1
+loc_00000000000005db:  jo short $$+0x00000000000005ee
+loc_00000000000005dd:  jo near $$+0x00000000111116f4
+loc_00000000000005e3:  jno short $$+0x00000000000005f6
+loc_00000000000005e5:  jno near $$+0x00000000111116fc
+loc_00000000000005eb:  jc short $$+0x00000000000005fe
+loc_00000000000005ed:  jc near $$+0x0000000011111704
+loc_00000000000005f3:  jnc short $$+0x0000000000000606
+loc_00000000000005f5:  jnc near $$+0x000000001111170c
+loc_00000000000005fb:  jz short $$+0x000000000000060e
+loc_00000000000005fd:  jz near $$+0x0000000011111714
+loc_0000000000000603:  jnz short $$+0x0000000000000616
+loc_0000000000000605:  jnz near $$+0x000000001111171c
+loc_000000000000060b:  jbe short $$+0x000000000000061e
+loc_000000000000060d:  jbe near $$+0x0000000011111724
+loc_0000000000000613:  ja short $$+0x0000000000000626
+loc_0000000000000615:  ja near $$+0x000000001111172c
+loc_000000000000061b:  js short $$+0x000000000000062e
+loc_000000000000061d:  js near $$+0x0000000011111734
+loc_0000000000000623:  jns short $$+0x0000000000000636
+loc_0000000000000625:  jns near $$+0x000000001111173c
+loc_000000000000062b:  jp short $$+0x000000000000063e
+loc_000000000000062d:  jp near $$+0x0000000011111744
+loc_0000000000000633:  jnp short $$+0x0000000000000646
+loc_0000000000000635:  jnp near $$+0x000000001111174c
+loc_000000000000063b:  jl short $$+0x000000000000064e
+loc_000000000000063d:  jl near $$+0x0000000011111754
+loc_0000000000000643:  jge short $$+0x0000000000000656
+loc_0000000000000645:  jge near $$+0x000000001111175c
+loc_000000000000064b:  jle short $$+0x000000000000065e
+loc_000000000000064d:  jle near $$+0x0000000011111764
+loc_0000000000000653:  jg short $$+0x0000000000000666
+loc_0000000000000655:  jg near $$+0x000000001111176c
+loc_000000000000065b:  call near $$+0x0000000011111771
+loc_0000000000000660:  call qword near [rax]
+loc_0000000000000662:  call qword far [rax]
+loc_0000000000000664:  jmp near $$+0x000000001111177a
+loc_0000000000000669:  jmp short $$+0x000000000000067c
+loc_000000000000066b:  jmp qword near [rax]
+loc_000000000000066d:  jmp qword far [rax]
+loc_000000000000066f:  ret 0x1111
+loc_0000000000000672:  ret
+loc_0000000000000673:  retf 0x1111
+loc_0000000000000676:  retf
+loc_0000000000000677:  int3
+loc_0000000000000678:  int 0x11
+loc_000000000000067a:  iretd
+loc_000000000000067b:  loopnz $$+0x000000000000068e
+loc_000000000000067d:  loopz $$+0x0000000000000690
+loc_000000000000067f:  loop $$+0x0000000000000692
+loc_0000000000000681:  jrcxz $$+0x0000000000000694
+loc_0000000000000683:  fxch st0
+loc_0000000000000685:  fst dword [rax]
+loc_0000000000000687:  fst qword [rax]
+loc_0000000000000689:  fst st0
+loc_000000000000068b:  fstp dword [rax]
+loc_000000000000068d:  fstp qword [rax]
+loc_000000000000068f:  fstp tword [rax]
+loc_0000000000000691:  fstp st0
+loc_0000000000000693:  fnstcw [rax]
+loc_0000000000000695:  fstcw [rax]
+loc_0000000000000698:  fldcw [rax]
+loc_000000000000069a:  fld dword [rax]
+loc_000000000000069c:  fld qword [rax]
+loc_000000000000069e:  fld tword [rax]
+loc_00000000000006a0:  fld st0
+loc_00000000000006a2:  fmul dword [rax]
+loc_00000000000006a4:  fmul qword [rax]
+loc_00000000000006a6:  fmul st0,st0
+loc_00000000000006a8:  fmul st0,st0
+loc_00000000000006aa:  fmulp st0,st0
+loc_00000000000006ac:  fimul dword [rax]
+loc_00000000000006ae:  fimul word [rax]
+loc_00000000000006b0:  wait

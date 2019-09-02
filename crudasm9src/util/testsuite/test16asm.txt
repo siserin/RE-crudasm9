@@ -1,0 +1,539 @@
+00000100  37                aaa
+00000101  D511              aad 0x11
+00000103  D411              aam 0x11
+00000105  3F                aas
+00000106  2F                das
+00000107  27                daa
+00000108  801011            adc byte [bx+si],0x11
+0000010B  F0801011          lock adc byte [bx+si],0x11
+0000010F  81101111          adc word [bx+si],0x1111
+00000113  F081101111        lock adc word [bx+si],0x1111
+00000118  831011            adc word [bx+si],byte +0x11
+0000011B  F0831011          lock adc word [bx+si],byte +0x11
+0000011F  1000              adc [bx+si],al
+00000121  F01000            lock adc [bx+si],al
+00000124  1200              adc al,[bx+si]
+00000126  1100              adc [bx+si],ax
+00000128  F01100            lock adc [bx+si],ax
+0000012B  1300              adc ax,[bx+si]
+0000012D  1411              adc al,0x11
+0000012F  151111            adc ax,0x1111
+00000132  800011            add byte [bx+si],0x11
+00000135  F0800011          lock add byte [bx+si],0x11
+00000139  81001111          add word [bx+si],0x1111
+0000013D  F081001111        lock add word [bx+si],0x1111
+00000142  830011            add word [bx+si],byte +0x11
+00000145  F0830011          lock add word [bx+si],byte +0x11
+00000149  0000              add [bx+si],al
+0000014B  F00000            lock add [bx+si],al
+0000014E  0200              add al,[bx+si]
+00000150  0100              add [bx+si],ax
+00000152  F00100            lock add [bx+si],ax
+00000155  0300              add ax,[bx+si]
+00000157  0411              add al,0x11
+00000159  051111            add ax,0x1111
+0000015C  800811            or byte [bx+si],0x11
+0000015F  F0800811          lock or byte [bx+si],0x11
+00000163  81081111          or word [bx+si],0x1111
+00000167  F081081111        lock or word [bx+si],0x1111
+0000016C  830811            or word [bx+si],byte +0x11
+0000016F  F0830811          lock or word [bx+si],byte +0x11
+00000173  0800              or [bx+si],al
+00000175  F00800            lock or [bx+si],al
+00000178  0A00              or al,[bx+si]
+0000017A  0900              or [bx+si],ax
+0000017C  F00900            lock or [bx+si],ax
+0000017F  0B00              or ax,[bx+si]
+00000181  0C11              or al,0x11
+00000183  0D1111            or ax,0x1111
+00000186  801811            sbb byte [bx+si],0x11
+00000189  F0801811          lock sbb byte [bx+si],0x11
+0000018D  81181111          sbb word [bx+si],0x1111
+00000191  F081181111        lock sbb word [bx+si],0x1111
+00000196  831811            sbb word [bx+si],byte +0x11
+00000199  F0831811          lock sbb word [bx+si],byte +0x11
+0000019D  1800              sbb [bx+si],al
+0000019F  F01800            lock sbb [bx+si],al
+000001A2  1A00              sbb al,[bx+si]
+000001A4  1900              sbb [bx+si],ax
+000001A6  F01900            lock sbb [bx+si],ax
+000001A9  1B00              sbb ax,[bx+si]
+000001AB  1C11              sbb al,0x11
+000001AD  1D1111            sbb ax,0x1111
+000001B0  802011            and byte [bx+si],0x11
+000001B3  F0802011          lock and byte [bx+si],0x11
+000001B7  81201111          and word [bx+si],0x1111
+000001BB  F081201111        lock and word [bx+si],0x1111
+000001C0  832011            and word [bx+si],byte +0x11
+000001C3  F0832011          lock and word [bx+si],byte +0x11
+000001C7  2000              and [bx+si],al
+000001C9  F02000            lock and [bx+si],al
+000001CC  2200              and al,[bx+si]
+000001CE  2100              and [bx+si],ax
+000001D0  F02100            lock and [bx+si],ax
+000001D3  2300              and ax,[bx+si]
+000001D5  2411              and al,0x11
+000001D7  251111            and ax,0x1111
+000001DA  802811            sub byte [bx+si],0x11
+000001DD  F0802811          lock sub byte [bx+si],0x11
+000001E1  81281111          sub word [bx+si],0x1111
+000001E5  F081281111        lock sub word [bx+si],0x1111
+000001EA  832811            sub word [bx+si],byte +0x11
+000001ED  F0832811          lock sub word [bx+si],byte +0x11
+000001F1  2800              sub [bx+si],al
+000001F3  F02800            lock sub [bx+si],al
+000001F6  2A00              sub al,[bx+si]
+000001F8  2900              sub [bx+si],ax
+000001FA  F02900            lock sub [bx+si],ax
+000001FD  2B00              sub ax,[bx+si]
+000001FF  2C11              sub al,0x11
+00000201  2D1111            sub ax,0x1111
+00000204  803011            xor byte [bx+si],0x11
+00000207  F0803011          lock xor byte [bx+si],0x11
+0000020B  81301111          xor word [bx+si],0x1111
+0000020F  F081301111        lock xor word [bx+si],0x1111
+00000214  833011            xor word [bx+si],byte +0x11
+00000217  F0833011          lock xor word [bx+si],byte +0x11
+0000021B  3000              xor [bx+si],al
+0000021D  F03000            lock xor [bx+si],al
+00000220  3200              xor al,[bx+si]
+00000222  3100              xor [bx+si],ax
+00000224  F03100            lock xor [bx+si],ax
+00000227  3300              xor ax,[bx+si]
+00000229  3411              xor al,0x11
+0000022B  351111            xor ax,0x1111
+0000022E  803811            cmp byte [bx+si],0x11
+00000231  81381111          cmp word [bx+si],0x1111
+00000235  833811            cmp word [bx+si],byte +0x11
+00000238  3800              cmp [bx+si],al
+0000023A  3A00              cmp al,[bx+si]
+0000023C  3900              cmp [bx+si],ax
+0000023E  3B00              cmp ax,[bx+si]
+00000240  3C11              cmp al,0x11
+00000242  3D1111            cmp ax,0x1111
+00000245  C00011            rol byte [bx+si],0x11
+00000248  C10011            rol word [bx+si],0x11
+0000024B  D000              rol byte [bx+si],1
+0000024D  D100              rol word [bx+si],1
+0000024F  D200              rol byte [bx+si],cl
+00000251  D300              rol word [bx+si],cl
+00000253  C00811            ror byte [bx+si],0x11
+00000256  C10811            ror word [bx+si],0x11
+00000259  D008              ror byte [bx+si],1
+0000025B  D108              ror word [bx+si],1
+0000025D  D208              ror byte [bx+si],cl
+0000025F  D308              ror word [bx+si],cl
+00000261  C01011            rcl byte [bx+si],0x11
+00000264  C11011            rcl word [bx+si],0x11
+00000267  D010              rcl byte [bx+si],1
+00000269  D110              rcl word [bx+si],1
+0000026B  D210              rcl byte [bx+si],cl
+0000026D  D310              rcl word [bx+si],cl
+0000026F  C01811            rcr byte [bx+si],0x11
+00000272  C11811            rcr word [bx+si],0x11
+00000275  D018              rcr byte [bx+si],1
+00000277  D118              rcr word [bx+si],1
+00000279  D218              rcr byte [bx+si],cl
+0000027B  D318              rcr word [bx+si],cl
+0000027D  C02011            shl byte [bx+si],0x11
+00000280  C12011            shl word [bx+si],0x11
+00000283  D020              shl byte [bx+si],1
+00000285  D120              shl word [bx+si],1
+00000287  D220              shl byte [bx+si],cl
+00000289  D320              shl word [bx+si],cl
+0000028B  C02811            shr byte [bx+si],0x11
+0000028E  C12811            shr word [bx+si],0x11
+00000291  D028              shr byte [bx+si],1
+00000293  D128              shr word [bx+si],1
+00000295  D228              shr byte [bx+si],cl
+00000297  D328              shr word [bx+si],cl
+00000299  C03811            sar byte [bx+si],0x11
+0000029C  C13811            sar word [bx+si],0x11
+0000029F  D038              sar byte [bx+si],1
+000002A1  D138              sar word [bx+si],1
+000002A3  D238              sar byte [bx+si],cl
+000002A5  D338              sar word [bx+si],cl
+000002A7  660F388000        invept eax,[bx+si]
+000002AC  660F388100        invvpid eax,[bx+si]
+000002B1  0F01C1            vmcall
+000002B4  660FC730          vmclear [bx+si]
+000002B8  0F01C2            vmlaunch
+000002BB  0F01C3            vmresume
+000002BE  0FC730            vmptrld [bx+si]
+000002C1  0FC738            vmptrst [bx+si]
+000002C4  0F7800            vmread dword [bx+si],eax
+000002C7  0F7900            vmwrite eax,dword [bx+si]
+000002CA  0F01C4            vmxoff
+000002CD  F30FC730          vmxon [bx+si]
+000002D1  D9F4              fxtract
+000002D3  0F380100          phaddw mm0,[bx+si]
+000002D7  660F380100        phaddw xmm0,[bx+si]
+000002DC  0F380200          phaddd mm0,[bx+si]
+000002E0  660F380200        phaddd xmm0,[bx+si]
+000002E5  D9F0              f2xm1
+000002E7  D9FF              fcos
+000002E9  0F2800            movaps xmm0,[bx+si]
+000002EC  0F2900            movaps [bx+si],xmm0
+000002EF  0FAE18            stmxcsr [bx+si]
+000002F2  0FAE10            ldmxcsr [bx+si]
+000002F5  F30F6F00          movdqu xmm0,[bx+si]
+000002F9  F30F7F00          movdqu [bx+si],xmm0
+000002FD  F20F1000          movsd xmm0,[bx+si]
+00000301  F20F1100          movsd [bx+si],xmm0
+00000305  F30F1000          movss xmm0,[bx+si]
+00000309  F30F1100          movss [bx+si],xmm0
+0000030D  660F6F00          movdqa xmm0,[bx+si]
+00000311  660F7F00          movdqa [bx+si],xmm0
+00000315  0F0D00            prefetch [bx+si]
+00000318  0F0D08            prefetchw [bx+si]
+0000031B  8800              mov [bx+si],al
+0000031D  8A00              mov al,[bx+si]
+0000031F  8900              mov [bx+si],ax
+00000321  8B00              mov ax,[bx+si]
+00000323  A02222            mov al,[0x2222]
+00000326  A22222            mov [0x2222],al
+00000329  A12222            mov ax,[0x2222]
+0000032C  A32222            mov [0x2222],ax
+0000032F  B011              mov al,0x11
+00000331  B81111            mov ax,0x1111
+00000334  C60011            mov byte [bx+si],0x11
+00000337  C7001111          mov word [bx+si],0x1111
+0000033B  6C                insb
+0000033C  F26C              repne insb
+0000033E  F36C              rep insb
+00000340  6D                insw
+00000341  F26D              repne insw
+00000343  F36D              rep insw
+00000345  6E                outsb
+00000346  F26E              repne outsb
+00000348  F36E              rep outsb
+0000034A  6F                outsw
+0000034B  F26F              repne outsw
+0000034D  F36F              rep outsw
+0000034F  6200              bound ax,[bx+si]
+00000351  6300              arpl [bx+si],ax
+00000353  0FAA              rsm
+00000355  0F0B              ud2
+00000357  0F34              sysenter
+00000359  0F35              sysexit
+0000035B  0F05              loadall286
+0000035D  0F07              loadall
+0000035F  0F0100            sgdt [bx+si]
+00000362  0F0108            sidt [bx+si]
+00000365  0F0110            lgdt [bx+si]
+00000368  0F0118            lidt [bx+si]
+0000036B  0F0000            sldt [bx+si]
+0000036E  0F00C0            sldt ax
+00000371  0F0010            lldt [bx+si]
+00000374  0F0120            smsw [bx+si]
+00000377  0F01E0            smsw ax
+0000037A  0F0130            lmsw [bx+si]
+0000037D  0F0008            str [bx+si]
+00000380  0F00C8            str ax
+00000383  0F0020            verr [bx+si]
+00000386  0F0028            verw [bx+si]
+00000389  0F09              wbinvd
+0000038B  0F30              wrmsr
+0000038D  0F32              rdmsr
+0000038F  0F33              rdpmc
+00000391  0F31              rdtsc
+00000393  0F06              clts
+00000395  0FA2              cpuid
+00000397  0F08              invd
+00000399  0F0138            invlpg [bx+si]
+0000039C  0F02C0            lar ax,ax
+0000039F  0F0200            lar ax,[bx+si]
+000003A2  0F03C0            lsl ax,ax
+000003A5  0F0300            lsl ax,[bx+si]
+000003A8  0F0018            ltr [bx+si]
+000003AB  0F20C0            mov eax,cr0
+000003AE  0F22C0            mov cr0,eax
+000003B1  0F21C0            mov eax,dr0
+000003B4  0F23C0            mov dr0,eax
+000003B7  C400              les ax,[bx+si]
+000003B9  C500              lds ax,[bx+si]
+000003BB  0FB200            lss ax,[bx+si]
+000003BE  0FB400            lfs ax,[bx+si]
+000003C1  0FB500            lgs ax,[bx+si]
+000003C4  0FBC00            bsf ax,[bx+si]
+000003C7  0FBD00            bsr ax,[bx+si]
+000003CA  0FA300            bt [bx+si],ax
+000003CD  0FA3C0            bt ax,ax
+000003D0  0FBA2011          bt word [bx+si],0x11
+000003D4  0FAB00            bts [bx+si],ax
+000003D7  F00FAB00          lock bts [bx+si],ax
+000003DB  0FBA2811          bts word [bx+si],0x11
+000003DF  F00FBA2811        lock bts word [bx+si],0x11
+000003E4  0FB300            btr [bx+si],ax
+000003E7  F00FB300          lock btr [bx+si],ax
+000003EB  0FBA3011          btr word [bx+si],0x11
+000003EF  F00FBA3011        lock btr word [bx+si],0x11
+000003F4  0FBB00            btc [bx+si],ax
+000003F7  F00FBB00          lock btc [bx+si],ax
+000003FB  0FBA3811          btc word [bx+si],0x11
+000003FF  F00FBA3811        lock btc word [bx+si],0x11
+00000404  660FC8            bswap eax
+00000407  0FB000            cmpxchg [bx+si],al
+0000040A  F00FB000          lock cmpxchg [bx+si],al
+0000040E  0FB100            cmpxchg [bx+si],ax
+00000411  F00FB100          lock cmpxchg [bx+si],ax
+00000415  0FC708            cmpxchg8b [bx+si]
+00000418  F00FC708          lock cmpxchg8b [bx+si]
+0000041C  660FB600          movzx eax,byte [bx+si]
+00000420  660FB700          movzx eax,word [bx+si]
+00000424  660FBE00          movsx eax,byte [bx+si]
+00000428  660FBF00          movsx eax,word [bx+si]
+0000042C  0FA40011          shld [bx+si],ax,0x11
+00000430  0FA500            shld [bx+si],ax,cl
+00000433  0FAC0011          shrd [bx+si],ax,0x11
+00000437  0FAD00            shrd [bx+si],ax,cl
+0000043A  0FC000            xadd [bx+si],al
+0000043D  F00FC000          lock xadd [bx+si],al
+00000441  0FC100            xadd [bx+si],ax
+00000444  F00FC100          lock xadd [bx+si],ax
+00000448  C8111111          enter 0x1111,0x11
+0000044C  C9                leave
+0000044D  F4                hlt
+0000044E  FA                cli
+0000044F  FB                sti
+00000450  E411              in al,0x11
+00000452  E511              in ax,0x11
+00000454  EC                in al,dx
+00000455  ED                in ax,dx
+00000456  E611              out 0x11,al
+00000458  E711              out 0x11,ax
+0000045A  EE                out dx,al
+0000045B  EF                out dx,ax
+0000045C  0F4000            cmovo ax,[bx+si]
+0000045F  0F4100            cmovno ax,[bx+si]
+00000462  0F4200            cmovc ax,[bx+si]
+00000465  0F4300            cmovnc ax,[bx+si]
+00000468  0F4400            cmovz ax,[bx+si]
+0000046B  0F4500            cmovnz ax,[bx+si]
+0000046E  0F4600            cmovna ax,[bx+si]
+00000471  0F4700            cmova ax,[bx+si]
+00000474  0F4800            cmovs ax,[bx+si]
+00000477  0F4900            cmovns ax,[bx+si]
+0000047A  0F4A00            cmovpe ax,[bx+si]
+0000047D  0F4B00            cmovpo ax,[bx+si]
+00000480  0F4C00            cmovl ax,[bx+si]
+00000483  0F4D00            cmovnl ax,[bx+si]
+00000486  0F4E00            cmovng ax,[bx+si]
+00000489  0F4F00            cmovg ax,[bx+si]
+0000048C  0F77              emms
+0000048E  0FAE08            fxrstor [bx+si]
+00000491  0FAE00            fxsave [bx+si]
+00000494  06                push es
+00000495  0E                push cs
+00000496  16                push ss
+00000497  1E                push ds
+00000498  0FA0              push fs
+0000049A  0FA8              push gs
+0000049C  07                pop es
+0000049D  17                pop ss
+0000049E  1F                pop ds
+0000049F  0FA1              pop fs
+000004A1  0FA9              pop gs
+000004A3  50                push ax
+000004A4  681111            push word 0x1111
+000004A7  6A11              push byte +0x11
+000004A9  FF30              push word [bx+si]
+000004AB  58                pop ax
+000004AC  8F00              pop word [bx+si]
+000004AE  8E00              mov es,[bx+si]
+000004B0  8E10              mov ss,[bx+si]
+000004B2  8E18              mov ds,[bx+si]
+000004B4  8E20              mov fs,[bx+si]
+000004B6  8E28              mov gs,[bx+si]
+000004B8  8CC0              mov ax,es
+000004BA  8CC8              mov ax,cs
+000004BC  8CD0              mov ax,ss
+000004BE  8CD8              mov ax,ds
+000004C0  8CE0              mov ax,fs
+000004C2  8CE8              mov ax,gs
+000004C4  8C00              mov [bx+si],es
+000004C6  8C08              mov [bx+si],cs
+000004C8  8C10              mov [bx+si],ss
+000004CA  8C18              mov [bx+si],ds
+000004CC  8C20              mov [bx+si],fs
+000004CE  8C28              mov [bx+si],gs
+000004D0  60                pushaw
+000004D1  61                popaw
+000004D2  9C                pushfw
+000004D3  9D                popfw
+000004D4  A4                movsb
+000004D5  F2A4              repne movsb
+000004D7  F3A4              rep movsb
+000004D9  A5                movsw
+000004DA  F2A5              repne movsw
+000004DC  F3A5              rep movsw
+000004DE  A6                cmpsb
+000004DF  F2A6              repne cmpsb
+000004E1  F3A6              repe cmpsb
+000004E3  A7                cmpsw
+000004E4  F2A7              repne cmpsw
+000004E6  F3A7              repe cmpsw
+000004E8  AA                stosb
+000004E9  F2AA              repne stosb
+000004EB  F3AA              rep stosb
+000004ED  AB                stosw
+000004EE  F2AB              repne stosw
+000004F0  F3AB              rep stosw
+000004F2  AC                lodsb
+000004F3  F2AC              repne lodsb
+000004F5  F3AC              rep lodsb
+000004F7  AD                lodsw
+000004F8  F2AD              repne lodsw
+000004FA  F3AD              rep lodsw
+000004FC  AE                scasb
+000004FD  F2AE              repne scasb
+000004FF  F3AE              repe scasb
+00000501  AF                scasw
+00000502  F2AF              repne scasw
+00000504  F3AF              repe scasw
+00000506  8400              test [bx+si],al
+00000508  8500              test [bx+si],ax
+0000050A  A811              test al,0x11
+0000050C  A91111            test ax,0x1111
+0000050F  F60011            test byte [bx+si],0x11
+00000512  F7001111          test word [bx+si],0x1111
+00000516  8600              xchg al,[bx+si]
+00000518  F08600            lock xchg al,[bx+si]
+0000051B  8700              xchg ax,[bx+si]
+0000051D  F08700            lock xchg ax,[bx+si]
+00000520  90                nop
+00000521  F610              not byte [bx+si]
+00000523  F0F610            lock not byte [bx+si]
+00000526  F710              not word [bx+si]
+00000528  F0F710            lock not word [bx+si]
+0000052B  F618              neg byte [bx+si]
+0000052D  F0F618            lock neg byte [bx+si]
+00000530  F718              neg word [bx+si]
+00000532  F0F718            lock neg word [bx+si]
+00000535  40                inc ax
+00000536  FE00              inc byte [bx+si]
+00000538  F0FE00            lock inc byte [bx+si]
+0000053B  FF00              inc word [bx+si]
+0000053D  F0FF00            lock inc word [bx+si]
+00000540  48                dec ax
+00000541  FE08              dec byte [bx+si]
+00000543  F0FE08            lock dec byte [bx+si]
+00000546  FF08              dec word [bx+si]
+00000548  F0FF08            lock dec word [bx+si]
+0000054B  D7                xlatb
+0000054C  0F9000            seto [bx+si]
+0000054F  0F9100            setno [bx+si]
+00000552  0F9200            setc [bx+si]
+00000555  0F9300            setnc [bx+si]
+00000558  0F9400            setz [bx+si]
+0000055B  0F9500            setnz [bx+si]
+0000055E  0F9600            setna [bx+si]
+00000561  0F9700            seta [bx+si]
+00000564  0F9800            sets [bx+si]
+00000567  0F9900            setns [bx+si]
+0000056A  0F9A00            setpe [bx+si]
+0000056D  0F9B00            setpo [bx+si]
+00000570  0F9C00            setl [bx+si]
+00000573  0F9D00            setnl [bx+si]
+00000576  0F9E00            setng [bx+si]
+00000579  0F9F00            setg [bx+si]
+0000057C  0F1F00            nop word [bx+si]
+0000057F  D6                salc
+00000580  98                cbw
+00000581  99                cwd
+00000582  9E                sahf
+00000583  9F                lahf
+00000584  F5                cmc
+00000585  F8                clc
+00000586  F9                stc
+00000587  FC                cld
+00000588  FD                std
+00000589  8D00              lea ax,[bx+si]
+0000058B  CE                into
+0000058C  69001111          imul ax,[bx+si],word 0x1111
+00000590  6B0011            imul ax,[bx+si],byte +0x11
+00000593  0FAF00            imul ax,[bx+si]
+00000596  F628              imul byte [bx+si]
+00000598  F728              imul word [bx+si]
+0000059A  F620              mul byte [bx+si]
+0000059C  F720              mul word [bx+si]
+0000059E  F630              div byte [bx+si]
+000005A0  F730              div word [bx+si]
+000005A2  F638              idiv byte [bx+si]
+000005A4  F738              idiv word [bx+si]
+000005A6  F1                int1
+000005A7  7011              jo 0x5ba
+000005A9  0F801111          jo word 0x16be
+000005AD  7111              jno 0x5c0
+000005AF  0F811111          jno word 0x16c4
+000005B3  7211              jc 0x5c6
+000005B5  0F821111          jc word 0x16ca
+000005B9  7311              jnc 0x5cc
+000005BB  0F831111          jnc word 0x16d0
+000005BF  7411              jz 0x5d2
+000005C1  0F841111          jz word 0x16d6
+000005C5  7511              jnz 0x5d8
+000005C7  0F851111          jnz word 0x16dc
+000005CB  7611              jna 0x5de
+000005CD  0F861111          jna word 0x16e2
+000005D1  7711              ja 0x5e4
+000005D3  0F871111          ja word 0x16e8
+000005D7  7811              js 0x5ea
+000005D9  0F881111          js word 0x16ee
+000005DD  7911              jns 0x5f0
+000005DF  0F891111          jns word 0x16f4
+000005E3  7A11              jpe 0x5f6
+000005E5  0F8A1111          jpe word 0x16fa
+000005E9  7B11              jpo 0x5fc
+000005EB  0F8B1111          jpo word 0x1700
+000005EF  7C11              jl 0x602
+000005F1  0F8C1111          jl word 0x1706
+000005F5  7D11              jnl 0x608
+000005F7  0F8D1111          jnl word 0x170c
+000005FB  7E11              jng 0x60e
+000005FD  0F8E1111          jng word 0x1712
+00000601  7F11              jg 0x614
+00000603  0F8F1111          jg word 0x1718
+00000607  E81111            call word 0x171b
+0000060A  FF10              call word near [bx+si]
+0000060C  9A11111111        call word 0x1111:0x1111
+00000611  FF18              call word far [bx+si]
+00000613  E91111            jmp word 0x1727
+00000616  EB11              jmp short 0x629
+00000618  FF20              jmp word near [bx+si]
+0000061A  EA11111111        jmp word 0x1111:0x1111
+0000061F  FF28              jmp word far [bx+si]
+00000621  C21111            ret 0x1111
+00000624  C3                ret
+00000625  CA1111            retf 0x1111
+00000628  CB                retf
+00000629  CC                int3
+0000062A  CD11              int 0x11
+0000062C  CF                iretw
+0000062D  E011              loopne 0x640
+0000062F  E111              loope 0x642
+00000631  E211              loop 0x644
+00000633  E311              jcxz 0x646
+00000635  D9C8              fxch st0
+00000637  D910              fst dword [bx+si]
+00000639  DD10              fst qword [bx+si]
+0000063B  DDD0              fst st0
+0000063D  D918              fstp dword [bx+si]
+0000063F  DD18              fstp qword [bx+si]
+00000641  DB38              fstp tword [bx+si]
+00000643  DDD8              fstp st0
+00000645  D938              fnstcw [bx+si]
+00000647  9BD938            fstcw [bx+si]
+0000064A  D928              fldcw [bx+si]
+0000064C  D900              fld dword [bx+si]
+0000064E  DD00              fld qword [bx+si]
+00000650  DB28              fld tword [bx+si]
+00000652  D9C0              fld st0
+00000654  D808              fmul dword [bx+si]
+00000656  DC08              fmul qword [bx+si]
+00000658  D8C8              fmul st0
+0000065A  DCC8              fmul to st0
+0000065C  DEC8              fmulp st0
+0000065E  DA08              fimul dword [bx+si]
+00000660  DE08              fimul word [bx+si]
+00000662  9B                wait

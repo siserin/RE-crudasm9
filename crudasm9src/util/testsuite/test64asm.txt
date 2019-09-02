@@ -1,0 +1,520 @@
+00000100  801011            adc byte [rax],0x11
+00000103  F0801011          lock adc byte [rax],0x11
+00000107  811011111111      adc dword [rax],0x11111111
+0000010D  F0811011111111    lock adc dword [rax],0x11111111
+00000114  831011            adc dword [rax],byte +0x11
+00000117  F0831011          lock adc dword [rax],byte +0x11
+0000011B  1000              adc [rax],al
+0000011D  F01000            lock adc [rax],al
+00000120  1200              adc al,[rax]
+00000122  1100              adc [rax],eax
+00000124  F01100            lock adc [rax],eax
+00000127  1300              adc eax,[rax]
+00000129  1411              adc al,0x11
+0000012B  1511111111        adc eax,0x11111111
+00000130  800011            add byte [rax],0x11
+00000133  F0800011          lock add byte [rax],0x11
+00000137  810011111111      add dword [rax],0x11111111
+0000013D  F0810011111111    lock add dword [rax],0x11111111
+00000144  830011            add dword [rax],byte +0x11
+00000147  F0830011          lock add dword [rax],byte +0x11
+0000014B  0000              add [rax],al
+0000014D  F00000            lock add [rax],al
+00000150  0200              add al,[rax]
+00000152  0100              add [rax],eax
+00000154  F00100            lock add [rax],eax
+00000157  0300              add eax,[rax]
+00000159  0411              add al,0x11
+0000015B  0511111111        add eax,0x11111111
+00000160  800811            or byte [rax],0x11
+00000163  F0800811          lock or byte [rax],0x11
+00000167  810811111111      or dword [rax],0x11111111
+0000016D  F0810811111111    lock or dword [rax],0x11111111
+00000174  830811            or dword [rax],byte +0x11
+00000177  F0830811          lock or dword [rax],byte +0x11
+0000017B  0800              or [rax],al
+0000017D  F00800            lock or [rax],al
+00000180  0A00              or al,[rax]
+00000182  0900              or [rax],eax
+00000184  F00900            lock or [rax],eax
+00000187  0B00              or eax,[rax]
+00000189  0C11              or al,0x11
+0000018B  0D11111111        or eax,0x11111111
+00000190  801811            sbb byte [rax],0x11
+00000193  F0801811          lock sbb byte [rax],0x11
+00000197  811811111111      sbb dword [rax],0x11111111
+0000019D  F0811811111111    lock sbb dword [rax],0x11111111
+000001A4  831811            sbb dword [rax],byte +0x11
+000001A7  F0831811          lock sbb dword [rax],byte +0x11
+000001AB  1800              sbb [rax],al
+000001AD  F01800            lock sbb [rax],al
+000001B0  1A00              sbb al,[rax]
+000001B2  1900              sbb [rax],eax
+000001B4  F01900            lock sbb [rax],eax
+000001B7  1B00              sbb eax,[rax]
+000001B9  1C11              sbb al,0x11
+000001BB  1D11111111        sbb eax,0x11111111
+000001C0  802011            and byte [rax],0x11
+000001C3  F0802011          lock and byte [rax],0x11
+000001C7  812011111111      and dword [rax],0x11111111
+000001CD  F0812011111111    lock and dword [rax],0x11111111
+000001D4  832011            and dword [rax],byte +0x11
+000001D7  F0832011          lock and dword [rax],byte +0x11
+000001DB  2000              and [rax],al
+000001DD  F02000            lock and [rax],al
+000001E0  2200              and al,[rax]
+000001E2  2100              and [rax],eax
+000001E4  F02100            lock and [rax],eax
+000001E7  2300              and eax,[rax]
+000001E9  2411              and al,0x11
+000001EB  2511111111        and eax,0x11111111
+000001F0  802811            sub byte [rax],0x11
+000001F3  F0802811          lock sub byte [rax],0x11
+000001F7  812811111111      sub dword [rax],0x11111111
+000001FD  F0812811111111    lock sub dword [rax],0x11111111
+00000204  832811            sub dword [rax],byte +0x11
+00000207  F0832811          lock sub dword [rax],byte +0x11
+0000020B  2800              sub [rax],al
+0000020D  F02800            lock sub [rax],al
+00000210  2A00              sub al,[rax]
+00000212  2900              sub [rax],eax
+00000214  F02900            lock sub [rax],eax
+00000217  2B00              sub eax,[rax]
+00000219  2C11              sub al,0x11
+0000021B  2D11111111        sub eax,0x11111111
+00000220  803011            xor byte [rax],0x11
+00000223  F0803011          lock xor byte [rax],0x11
+00000227  813011111111      xor dword [rax],0x11111111
+0000022D  F0813011111111    lock xor dword [rax],0x11111111
+00000234  833011            xor dword [rax],byte +0x11
+00000237  F0833011          lock xor dword [rax],byte +0x11
+0000023B  3000              xor [rax],al
+0000023D  F03000            lock xor [rax],al
+00000240  3200              xor al,[rax]
+00000242  3100              xor [rax],eax
+00000244  F03100            lock xor [rax],eax
+00000247  3300              xor eax,[rax]
+00000249  3411              xor al,0x11
+0000024B  3511111111        xor eax,0x11111111
+00000250  803811            cmp byte [rax],0x11
+00000253  813811111111      cmp dword [rax],0x11111111
+00000259  833811            cmp dword [rax],byte +0x11
+0000025C  3800              cmp [rax],al
+0000025E  3A00              cmp al,[rax]
+00000260  3900              cmp [rax],eax
+00000262  3B00              cmp eax,[rax]
+00000264  3C11              cmp al,0x11
+00000266  3D11111111        cmp eax,0x11111111
+0000026B  C00011            rol byte [rax],0x11
+0000026E  C10011            rol dword [rax],0x11
+00000271  D000              rol byte [rax],1
+00000273  D100              rol dword [rax],1
+00000275  D200              rol byte [rax],cl
+00000277  D300              rol dword [rax],cl
+00000279  C00811            ror byte [rax],0x11
+0000027C  C10811            ror dword [rax],0x11
+0000027F  D008              ror byte [rax],1
+00000281  D108              ror dword [rax],1
+00000283  D208              ror byte [rax],cl
+00000285  D308              ror dword [rax],cl
+00000287  C01011            rcl byte [rax],0x11
+0000028A  C11011            rcl dword [rax],0x11
+0000028D  D010              rcl byte [rax],1
+0000028F  D110              rcl dword [rax],1
+00000291  D210              rcl byte [rax],cl
+00000293  D310              rcl dword [rax],cl
+00000295  C01811            rcr byte [rax],0x11
+00000298  C11811            rcr dword [rax],0x11
+0000029B  D018              rcr byte [rax],1
+0000029D  D118              rcr dword [rax],1
+0000029F  D218              rcr byte [rax],cl
+000002A1  D318              rcr dword [rax],cl
+000002A3  C02011            shl byte [rax],0x11
+000002A6  C12011            shl dword [rax],0x11
+000002A9  D020              shl byte [rax],1
+000002AB  D120              shl dword [rax],1
+000002AD  D220              shl byte [rax],cl
+000002AF  D320              shl dword [rax],cl
+000002B1  C02811            shr byte [rax],0x11
+000002B4  C12811            shr dword [rax],0x11
+000002B7  D028              shr byte [rax],1
+000002B9  D128              shr dword [rax],1
+000002BB  D228              shr byte [rax],cl
+000002BD  D328              shr dword [rax],cl
+000002BF  C03811            sar byte [rax],0x11
+000002C2  C13811            sar dword [rax],0x11
+000002C5  D038              sar byte [rax],1
+000002C7  D138              sar dword [rax],1
+000002C9  D238              sar byte [rax],cl
+000002CB  D338              sar dword [rax],cl
+000002CD  660F388000        invept rax,[rax]
+000002D2  660F388100        invvpid rax,[rax]
+000002D7  0F01C1            vmcall
+000002DA  660FC730          vmclear [rax]
+000002DE  0F01C2            vmlaunch
+000002E1  0F01C3            vmresume
+000002E4  0FC730            vmptrld [rax]
+000002E7  0FC738            vmptrst [rax]
+000002EA  0F7800            vmread qword [rax],rax
+000002ED  0F7900            vmwrite rax,qword [rax]
+000002F0  0F01C4            vmxoff
+000002F3  F30FC730          vmxon [rax]
+000002F7  D9F4              fxtract
+000002F9  0F380100          phaddw mm0,[rax]
+000002FD  660F380100        phaddw xmm0,[rax]
+00000302  0F380200          phaddd mm0,[rax]
+00000306  660F380200        phaddd xmm0,[rax]
+0000030B  D9F0              f2xm1
+0000030D  D9FF              fcos
+0000030F  0F2800            movaps xmm0,[rax]
+00000312  0F2900            movaps [rax],xmm0
+00000315  0FAE18            stmxcsr [rax]
+00000318  0FAE10            ldmxcsr [rax]
+0000031B  F30F6F00          movdqu xmm0,[rax]
+0000031F  F30F7F00          movdqu [rax],xmm0
+00000323  F20F1000          movsd xmm0,[rax]
+00000327  F20F1100          movsd [rax],xmm0
+0000032B  F30F1000          movss xmm0,[rax]
+0000032F  F30F1100          movss [rax],xmm0
+00000333  660F6F00          movdqa xmm0,[rax]
+00000337  660F7F00          movdqa [rax],xmm0
+0000033B  0F0D00            prefetch [rax]
+0000033E  0F0D08            prefetchw [rax]
+00000341  8800              mov [rax],al
+00000343  8A00              mov al,[rax]
+00000345  8900              mov [rax],eax
+00000347  8B00              mov eax,[rax]
+00000349  A022222222222222  mov al,[qword 0x2222222222222222]
+         -22
+00000352  A222222222222222  mov [qword 0x2222222222222222],al
+         -22
+0000035B  A122222222222222  mov eax,[qword 0x2222222222222222]
+         -22
+00000364  A322222222222222  mov [qword 0x2222222222222222],eax
+         -22
+0000036D  B011              mov al,0x11
+0000036F  B811111111        mov eax,0x11111111
+00000374  C60011            mov byte [rax],0x11
+00000377  C70011111111      mov dword [rax],0x11111111
+0000037D  6C                insb
+0000037E  F26C              repne insb
+00000380  F36C              rep insb
+00000382  6D                insd
+00000383  F26D              repne insd
+00000385  F36D              rep insd
+00000387  6E                outsb
+00000388  F26E              repne outsb
+0000038A  F36E              rep outsb
+0000038C  6F                outsd
+0000038D  F26F              repne outsd
+0000038F  F36F              rep outsd
+00000391  486300            movsxd rax,dword [rax]
+00000394  0FAA              rsm
+00000396  0F0B              ud2
+00000398  0F34              sysenter
+0000039A  0F35              sysexit
+0000039C  0F05              loadall286
+0000039E  0F07              loadall
+000003A0  0F0100            sgdt [rax]
+000003A3  0F0108            sidt [rax]
+000003A6  0F0110            lgdt [rax]
+000003A9  0F0118            lidt [rax]
+000003AC  0F0000            sldt [rax]
+000003AF  0F00C0            sldt eax
+000003B2  0F0010            lldt [rax]
+000003B5  0F0120            smsw [rax]
+000003B8  0F01E0            smsw eax
+000003BB  0F0130            lmsw [rax]
+000003BE  0F0008            str [rax]
+000003C1  0F00C8            str eax
+000003C4  0F0020            verr [rax]
+000003C7  0F0028            verw [rax]
+000003CA  0F09              wbinvd
+000003CC  0F30              wrmsr
+000003CE  0F32              rdmsr
+000003D0  0F33              rdpmc
+000003D2  0F31              rdtsc
+000003D4  0F06              clts
+000003D6  0FA2              cpuid
+000003D8  0F08              invd
+000003DA  0F0138            invlpg [rax]
+000003DD  0F02C0            lar eax,ax
+000003E0  0F0200            lar eax,[rax]
+000003E3  0F03C0            lsl eax,ax
+000003E6  0F0300            lsl eax,[rax]
+000003E9  0F0018            ltr [rax]
+000003EC  0F20C0            mov rax,cr0
+000003EF  0F22C0            mov cr0,rax
+000003F2  0F21C0            mov rax,dr0
+000003F5  0F23C0            mov dr0,rax
+000003F8  0FB200            lss eax,[rax]
+000003FB  0FB400            lfs eax,[rax]
+000003FE  0FB500            lgs eax,[rax]
+00000401  0FBC00            bsf eax,[rax]
+00000404  0FBD00            bsr eax,[rax]
+00000407  0FA300            bt [rax],eax
+0000040A  0FA3C0            bt eax,eax
+0000040D  0FBA2011          bt dword [rax],0x11
+00000411  0FAB00            bts [rax],eax
+00000414  F00FAB00          lock bts [rax],eax
+00000418  0FBA2811          bts dword [rax],0x11
+0000041C  F00FBA2811        lock bts dword [rax],0x11
+00000421  0FB300            btr [rax],eax
+00000424  F00FB300          lock btr [rax],eax
+00000428  0FBA3011          btr dword [rax],0x11
+0000042C  F00FBA3011        lock btr dword [rax],0x11
+00000431  0FBB00            btc [rax],eax
+00000434  F00FBB00          lock btc [rax],eax
+00000438  0FBA3811          btc dword [rax],0x11
+0000043C  F00FBA3811        lock btc dword [rax],0x11
+00000441  0FC8              bswap eax
+00000443  0FB000            cmpxchg [rax],al
+00000446  F00FB000          lock cmpxchg [rax],al
+0000044A  0FB100            cmpxchg [rax],eax
+0000044D  F00FB100          lock cmpxchg [rax],eax
+00000451  0FC708            cmpxchg8b [rax]
+00000454  F00FC708          lock cmpxchg8b [rax]
+00000458  0FB600            movzx eax,byte [rax]
+0000045B  0FB700            movzx eax,word [rax]
+0000045E  0FBE00            movsx eax,byte [rax]
+00000461  0FBF00            movsx eax,word [rax]
+00000464  0FA40011          shld [rax],eax,0x11
+00000468  0FA500            shld [rax],eax,cl
+0000046B  0FAC0011          shrd [rax],eax,0x11
+0000046F  0FAD00            shrd [rax],eax,cl
+00000472  0FC000            xadd [rax],al
+00000475  F00FC000          lock xadd [rax],al
+00000479  0FC100            xadd [rax],eax
+0000047C  F00FC100          lock xadd [rax],eax
+00000480  C8111111          enter 0x1111,0x11
+00000484  C9                leave
+00000485  F4                hlt
+00000486  FA                cli
+00000487  FB                sti
+00000488  E411              in al,0x11
+0000048A  E511              in eax,0x11
+0000048C  EC                in al,dx
+0000048D  ED                in eax,dx
+0000048E  E611              out 0x11,al
+00000490  E711              out 0x11,eax
+00000492  EE                out dx,al
+00000493  EF                out dx,eax
+00000494  0F4000            cmovo eax,[rax]
+00000497  0F4100            cmovno eax,[rax]
+0000049A  0F4200            cmovc eax,[rax]
+0000049D  0F4300            cmovnc eax,[rax]
+000004A0  0F4400            cmovz eax,[rax]
+000004A3  0F4500            cmovnz eax,[rax]
+000004A6  0F4600            cmovna eax,[rax]
+000004A9  0F4700            cmova eax,[rax]
+000004AC  0F4800            cmovs eax,[rax]
+000004AF  0F4900            cmovns eax,[rax]
+000004B2  0F4A00            cmovpe eax,[rax]
+000004B5  0F4B00            cmovpo eax,[rax]
+000004B8  0F4C00            cmovl eax,[rax]
+000004BB  0F4D00            cmovnl eax,[rax]
+000004BE  0F4E00            cmovng eax,[rax]
+000004C1  0F4F00            cmovg eax,[rax]
+000004C4  0F77              emms
+000004C6  0FAE08            fxrstor [rax]
+000004C9  0FAE00            fxsave [rax]
+000004CC  0FA0              push fs
+000004CE  0FA8              push gs
+000004D0  0FA1              pop fs
+000004D2  0FA9              pop gs
+000004D4  50                push rax
+000004D5  6811111111        push dword 0x11111111
+000004DA  6A11              push byte +0x11
+000004DC  FF30              push qword [rax]
+000004DE  58                pop rax
+000004DF  8F00              pop qword [rax]
+000004E1  8E00              mov es,[rax]
+000004E3  8E10              mov ss,[rax]
+000004E5  8E18              mov ds,[rax]
+000004E7  8E20              mov fs,[rax]
+000004E9  8E28              mov gs,[rax]
+000004EB  8CC0              mov eax,es
+000004ED  8CC8              mov eax,cs
+000004EF  8CD0              mov eax,ss
+000004F1  8CD8              mov eax,ds
+000004F3  8CE0              mov eax,fs
+000004F5  8CE8              mov eax,gs
+000004F7  8C00              mov [rax],es
+000004F9  8C08              mov [rax],cs
+000004FB  8C10              mov [rax],ss
+000004FD  8C18              mov [rax],ds
+000004FF  8C20              mov [rax],fs
+00000501  8C28              mov [rax],gs
+00000503  9C                pushfq
+00000504  9D                popfq
+00000505  A4                movsb
+00000506  F2A4              repne movsb
+00000508  F3A4              rep movsb
+0000050A  A5                movsd
+0000050B  F2A5              repne movsd
+0000050D  F3A5              rep movsd
+0000050F  A6                cmpsb
+00000510  F2A6              repne cmpsb
+00000512  F3A6              repe cmpsb
+00000514  A7                cmpsd
+00000515  F2A7              repne cmpsd
+00000517  F3A7              repe cmpsd
+00000519  AA                stosb
+0000051A  F2AA              repne stosb
+0000051C  F3AA              rep stosb
+0000051E  AB                stosd
+0000051F  F2AB              repne stosd
+00000521  F3AB              rep stosd
+00000523  AC                lodsb
+00000524  F2AC              repne lodsb
+00000526  F3AC              rep lodsb
+00000528  AD                lodsd
+00000529  F2AD              repne lodsd
+0000052B  F3AD              rep lodsd
+0000052D  AE                scasb
+0000052E  F2AE              repne scasb
+00000530  F3AE              repe scasb
+00000532  AF                scasd
+00000533  F2AF              repne scasd
+00000535  F3AF              repe scasd
+00000537  8400              test [rax],al
+00000539  8500              test [rax],eax
+0000053B  A811              test al,0x11
+0000053D  A911111111        test eax,0x11111111
+00000542  F60011            test byte [rax],0x11
+00000545  F70011111111      test dword [rax],0x11111111
+0000054B  8600              xchg al,[rax]
+0000054D  F08600            lock xchg al,[rax]
+00000550  8700              xchg eax,[rax]
+00000552  F08700            lock xchg eax,[rax]
+00000555  90                nop
+00000556  F610              not byte [rax]
+00000558  F0F610            lock not byte [rax]
+0000055B  F710              not dword [rax]
+0000055D  F0F710            lock not dword [rax]
+00000560  F618              neg byte [rax]
+00000562  F0F618            lock neg byte [rax]
+00000565  F718              neg dword [rax]
+00000567  F0F718            lock neg dword [rax]
+0000056A  FE00              inc byte [rax]
+0000056C  F0FE00            lock inc byte [rax]
+0000056F  FF00              inc dword [rax]
+00000571  F0FF00            lock inc dword [rax]
+00000574  FE08              dec byte [rax]
+00000576  F0FE08            lock dec byte [rax]
+00000579  FF08              dec dword [rax]
+0000057B  F0FF08            lock dec dword [rax]
+0000057E  D7                xlatb
+0000057F  0F9000            seto [rax]
+00000582  0F9100            setno [rax]
+00000585  0F9200            setc [rax]
+00000588  0F9300            setnc [rax]
+0000058B  0F9400            setz [rax]
+0000058E  0F9500            setnz [rax]
+00000591  0F9600            setna [rax]
+00000594  0F9700            seta [rax]
+00000597  0F9800            sets [rax]
+0000059A  0F9900            setns [rax]
+0000059D  0F9A00            setpe [rax]
+000005A0  0F9B00            setpo [rax]
+000005A3  0F9C00            setl [rax]
+000005A6  0F9D00            setnl [rax]
+000005A9  0F9E00            setng [rax]
+000005AC  0F9F00            setg [rax]
+000005AF  0F1F00            nop dword [rax]
+000005B2  D6                salc
+000005B3  98                cwde
+000005B4  99                cdq
+000005B5  9E                sahf
+000005B6  9F                lahf
+000005B7  F5                cmc
+000005B8  F8                clc
+000005B9  F9                stc
+000005BA  FC                cld
+000005BB  FD                std
+000005BC  8D00              lea eax,[rax]
+000005BE  690011111111      imul eax,[rax],dword 0x11111111
+000005C4  6B0011            imul eax,[rax],byte +0x11
+000005C7  0FAF00            imul eax,[rax]
+000005CA  F628              imul byte [rax]
+000005CC  F728              imul dword [rax]
+000005CE  F620              mul byte [rax]
+000005D0  F720              mul dword [rax]
+000005D2  F630              div byte [rax]
+000005D4  F730              div dword [rax]
+000005D6  F638              idiv byte [rax]
+000005D8  F738              idiv dword [rax]
+000005DA  F1                int1
+000005DB  7011              jo 0x5ee
+000005DD  0F8011111111      jo dword 0x111116f4
+000005E3  7111              jno 0x5f6
+000005E5  0F8111111111      jno dword 0x111116fc
+000005EB  7211              jc 0x5fe
+000005ED  0F8211111111      jc dword 0x11111704
+000005F3  7311              jnc 0x606
+000005F5  0F8311111111      jnc dword 0x1111170c
+000005FB  7411              jz 0x60e
+000005FD  0F8411111111      jz dword 0x11111714
+00000603  7511              jnz 0x616
+00000605  0F8511111111      jnz dword 0x1111171c
+0000060B  7611              jna 0x61e
+0000060D  0F8611111111      jna dword 0x11111724
+00000613  7711              ja 0x626
+00000615  0F8711111111      ja dword 0x1111172c
+0000061B  7811              js 0x62e
+0000061D  0F8811111111      js dword 0x11111734
+00000623  7911              jns 0x636
+00000625  0F8911111111      jns dword 0x1111173c
+0000062B  7A11              jpe 0x63e
+0000062D  0F8A11111111      jpe dword 0x11111744
+00000633  7B11              jpo 0x646
+00000635  0F8B11111111      jpo dword 0x1111174c
+0000063B  7C11              jl 0x64e
+0000063D  0F8C11111111      jl dword 0x11111754
+00000643  7D11              jnl 0x656
+00000645  0F8D11111111      jnl dword 0x1111175c
+0000064B  7E11              jng 0x65e
+0000064D  0F8E11111111      jng dword 0x11111764
+00000653  7F11              jg 0x666
+00000655  0F8F11111111      jg dword 0x1111176c
+0000065B  E811111111        call dword 0x11111771
+00000660  FF10              call qword [rax]
+00000662  FF18              call dword far [rax]
+00000664  E911111111        jmp dword 0x1111177a
+00000669  EB11              jmp short 0x67c
+0000066B  FF20              jmp qword near [rax]
+0000066D  FF28              jmp dword far [rax]
+0000066F  C21111            ret 0x1111
+00000672  C3                ret
+00000673  CA1111            retf 0x1111
+00000676  CB                retf
+00000677  CC                int3
+00000678  CD11              int 0x11
+0000067A  CF                iretd
+0000067B  E011              loopne 0x68e
+0000067D  E111              loope 0x690
+0000067F  E211              loop 0x692
+00000681  E311              jrcxz 0x694
+00000683  D9C8              fxch st0
+00000685  D910              fst dword [rax]
+00000687  DD10              fst qword [rax]
+00000689  DDD0              fst st0
+0000068B  D918              fstp dword [rax]
+0000068D  DD18              fstp qword [rax]
+0000068F  DB38              fstp tword [rax]
+00000691  DDD8              fstp st0
+00000693  D938              fnstcw [rax]
+00000695  9BD938            fstcw [rax]
+00000698  D928              fldcw [rax]
+0000069A  D900              fld dword [rax]
+0000069C  DD00              fld qword [rax]
+0000069E  DB28              fld tword [rax]
+000006A0  D9C0              fld st0
+000006A2  D808              fmul dword [rax]
+000006A4  DC08              fmul qword [rax]
+000006A6  D8C8              fmul st0
+000006A8  DCC8              fmul to st0
+000006AA  DEC8              fmulp st0
+000006AC  DA08              fimul dword [rax]
+000006AE  DE08              fimul word [rax]
+000006B0  9B                wait

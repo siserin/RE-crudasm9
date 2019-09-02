@@ -1,0 +1,542 @@
+; disassembly of test32.bin
+; org 0x00000100
+bits 32
+loc_00000100:  aaa
+loc_00000101:  aad 0x11
+loc_00000103:  aam 0x11
+loc_00000105:  aas
+loc_00000106:  das
+loc_00000107:  daa
+loc_00000108:  adc byte [eax],0x11
+loc_0000010b:  lock adc byte [eax],0x11
+loc_0000010f:  adc dword [eax],0x11111111
+loc_00000115:  lock adc dword [eax],0x11111111
+loc_0000011c:  adc dword [eax],byte +0x11
+loc_0000011f:  lock adc dword [eax],byte +0x11
+loc_00000123:  adc [eax],al
+loc_00000125:  lock adc [eax],al
+loc_00000128:  adc al,[eax]
+loc_0000012a:  adc [eax],eax
+loc_0000012c:  lock adc [eax],eax
+loc_0000012f:  adc eax,[eax]
+loc_00000131:  adc al,0x11
+loc_00000133:  adc eax,0x11111111
+loc_00000138:  add byte [eax],0x11
+loc_0000013b:  lock add byte [eax],0x11
+loc_0000013f:  add dword [eax],0x11111111
+loc_00000145:  lock add dword [eax],0x11111111
+loc_0000014c:  add dword [eax],byte +0x11
+loc_0000014f:  lock add dword [eax],byte +0x11
+loc_00000153:  add [eax],al
+loc_00000155:  lock add [eax],al
+loc_00000158:  add al,[eax]
+loc_0000015a:  add [eax],eax
+loc_0000015c:  lock add [eax],eax
+loc_0000015f:  add eax,[eax]
+loc_00000161:  add al,0x11
+loc_00000163:  add eax,0x11111111
+loc_00000168:  or byte [eax],0x11
+loc_0000016b:  lock or byte [eax],0x11
+loc_0000016f:  or dword [eax],0x11111111
+loc_00000175:  lock or dword [eax],0x11111111
+loc_0000017c:  or dword [eax],byte +0x11
+loc_0000017f:  lock or dword [eax],byte +0x11
+loc_00000183:  or [eax],al
+loc_00000185:  lock or [eax],al
+loc_00000188:  or al,[eax]
+loc_0000018a:  or [eax],eax
+loc_0000018c:  lock or [eax],eax
+loc_0000018f:  or eax,[eax]
+loc_00000191:  or al,0x11
+loc_00000193:  or eax,0x11111111
+loc_00000198:  sbb byte [eax],0x11
+loc_0000019b:  lock sbb byte [eax],0x11
+loc_0000019f:  sbb dword [eax],0x11111111
+loc_000001a5:  lock sbb dword [eax],0x11111111
+loc_000001ac:  sbb dword [eax],byte +0x11
+loc_000001af:  lock sbb dword [eax],byte +0x11
+loc_000001b3:  sbb [eax],al
+loc_000001b5:  lock sbb [eax],al
+loc_000001b8:  sbb al,[eax]
+loc_000001ba:  sbb [eax],eax
+loc_000001bc:  lock sbb [eax],eax
+loc_000001bf:  sbb eax,[eax]
+loc_000001c1:  sbb al,0x11
+loc_000001c3:  sbb eax,0x11111111
+loc_000001c8:  and byte [eax],0x11
+loc_000001cb:  lock and byte [eax],0x11
+loc_000001cf:  and dword [eax],0x11111111
+loc_000001d5:  lock and dword [eax],0x11111111
+loc_000001dc:  and dword [eax],byte +0x11
+loc_000001df:  lock and dword [eax],byte +0x11
+loc_000001e3:  and [eax],al
+loc_000001e5:  lock and [eax],al
+loc_000001e8:  and al,[eax]
+loc_000001ea:  and [eax],eax
+loc_000001ec:  lock and [eax],eax
+loc_000001ef:  and eax,[eax]
+loc_000001f1:  and al,0x11
+loc_000001f3:  and eax,0x11111111
+loc_000001f8:  sub byte [eax],0x11
+loc_000001fb:  lock sub byte [eax],0x11
+loc_000001ff:  sub dword [eax],0x11111111
+loc_00000205:  lock sub dword [eax],0x11111111
+loc_0000020c:  sub dword [eax],byte +0x11
+loc_0000020f:  lock sub dword [eax],byte +0x11
+loc_00000213:  sub [eax],al
+loc_00000215:  lock sub [eax],al
+loc_00000218:  sub al,[eax]
+loc_0000021a:  sub [eax],eax
+loc_0000021c:  lock sub [eax],eax
+loc_0000021f:  sub eax,[eax]
+loc_00000221:  sub al,0x11
+loc_00000223:  sub eax,0x11111111
+loc_00000228:  xor byte [eax],0x11
+loc_0000022b:  lock xor byte [eax],0x11
+loc_0000022f:  xor dword [eax],0x11111111
+loc_00000235:  lock xor dword [eax],0x11111111
+loc_0000023c:  xor dword [eax],byte +0x11
+loc_0000023f:  lock xor dword [eax],byte +0x11
+loc_00000243:  xor [eax],al
+loc_00000245:  lock xor [eax],al
+loc_00000248:  xor al,[eax]
+loc_0000024a:  xor [eax],eax
+loc_0000024c:  lock xor [eax],eax
+loc_0000024f:  xor eax,[eax]
+loc_00000251:  xor al,0x11
+loc_00000253:  xor eax,0x11111111
+loc_00000258:  cmp byte [eax],0x11
+loc_0000025b:  cmp dword [eax],0x11111111
+loc_00000261:  cmp dword [eax],byte +0x11
+loc_00000264:  cmp [eax],al
+loc_00000266:  cmp al,[eax]
+loc_00000268:  cmp [eax],eax
+loc_0000026a:  cmp eax,[eax]
+loc_0000026c:  cmp al,0x11
+loc_0000026e:  cmp eax,0x11111111
+loc_00000273:  rol byte [eax],0x11
+loc_00000276:  rol dword [eax],0x11
+loc_00000279:  rol byte [eax],0x01
+loc_0000027b:  rol dword [eax],0x01
+loc_0000027d:  rol byte [eax],cl
+loc_0000027f:  rol dword [eax],cl
+loc_00000281:  ror byte [eax],0x11
+loc_00000284:  ror dword [eax],0x11
+loc_00000287:  ror byte [eax],0x01
+loc_00000289:  ror dword [eax],0x01
+loc_0000028b:  ror byte [eax],cl
+loc_0000028d:  ror dword [eax],cl
+loc_0000028f:  rcl byte [eax],0x11
+loc_00000292:  rcl dword [eax],0x11
+loc_00000295:  rcl byte [eax],0x01
+loc_00000297:  rcl dword [eax],0x01
+loc_00000299:  rcl byte [eax],cl
+loc_0000029b:  rcl dword [eax],cl
+loc_0000029d:  rcr byte [eax],0x11
+loc_000002a0:  rcr dword [eax],0x11
+loc_000002a3:  rcr byte [eax],0x01
+loc_000002a5:  rcr dword [eax],0x01
+loc_000002a7:  rcr byte [eax],cl
+loc_000002a9:  rcr dword [eax],cl
+loc_000002ab:  shl byte [eax],0x11
+loc_000002ae:  shl dword [eax],0x11
+loc_000002b1:  shl byte [eax],0x01
+loc_000002b3:  shl dword [eax],0x01
+loc_000002b5:  shl byte [eax],cl
+loc_000002b7:  shl dword [eax],cl
+loc_000002b9:  shr byte [eax],0x11
+loc_000002bc:  shr dword [eax],0x11
+loc_000002bf:  shr byte [eax],0x01
+loc_000002c1:  shr dword [eax],0x01
+loc_000002c3:  shr byte [eax],cl
+loc_000002c5:  shr dword [eax],cl
+loc_000002c7:  sar byte [eax],0x11
+loc_000002ca:  sar dword [eax],0x11
+loc_000002cd:  sar byte [eax],0x01
+loc_000002cf:  sar dword [eax],0x01
+loc_000002d1:  sar byte [eax],cl
+loc_000002d3:  sar dword [eax],cl
+loc_000002d5:  invept eax,[eax]
+loc_000002da:  invvpid eax,[eax]
+loc_000002df:  vmcall
+loc_000002e2:  vmclear [eax]
+loc_000002e6:  vmlaunch
+loc_000002e9:  vmresume
+loc_000002ec:  vmptrld [eax]
+loc_000002ef:  vmptrst [eax]
+loc_000002f2:  vmread [eax],eax
+loc_000002f5:  vmwrite eax,[eax]
+loc_000002f8:  vmxoff
+loc_000002fb:  vmxon [eax]
+loc_000002ff:  fxtract
+loc_00000301:  phaddw mm0,[eax]
+loc_00000305:  phaddw xmm0,[eax]
+loc_0000030a:  phaddd mm0,[eax]
+loc_0000030e:  phaddd xmm0,[eax]
+loc_00000313:  f2xm1
+loc_00000315:  fcos
+loc_00000317:  movaps xmm0,[eax]
+loc_0000031a:  movaps [eax],xmm0
+loc_0000031d:  stmxcsr [eax]
+loc_00000320:  ldmxcsr [eax]
+loc_00000323:  movdqu xmm0,[eax]
+loc_00000327:  movdqu [eax],xmm0
+loc_0000032b:  movsd xmm0,[eax]
+loc_0000032f:  movsd [eax],xmm0
+loc_00000333:  movss xmm0,[eax]
+loc_00000337:  movss [eax],xmm0
+loc_0000033b:  movdqa xmm0,[eax]
+loc_0000033f:  movdqa [eax],xmm0
+loc_00000343:  prefetch [eax]
+loc_00000346:  prefetchw [eax]
+loc_00000349:  mov [eax],al
+loc_0000034b:  mov al,[eax]
+loc_0000034d:  mov [eax],eax
+loc_0000034f:  mov eax,[eax]
+loc_00000351:  mov al,[0x22222222]
+loc_00000356:  mov [0x22222222],al
+loc_0000035b:  mov eax,[0x22222222]
+loc_00000360:  mov [0x22222222],eax
+loc_00000365:  mov al,0x11
+loc_00000367:  mov eax,0x11111111
+loc_0000036c:  mov byte [eax],0x11
+loc_0000036f:  mov dword [eax],0x11111111
+loc_00000375:  insb
+loc_00000376:  rep insb
+loc_00000378:  rep insb
+loc_0000037a:  insd
+loc_0000037b:  rep insd
+loc_0000037d:  rep insd
+loc_0000037f:  outsb
+loc_00000380:  rep outsb
+loc_00000382:  rep outsb
+loc_00000384:  outsd
+loc_00000385:  rep outsd
+loc_00000387:  rep outsd
+loc_00000389:  bound eax,[eax]
+loc_0000038b:  arpl [eax],ax
+loc_0000038d:  rsm
+loc_0000038f:  ud2
+loc_00000391:  sysenter
+loc_00000393:  sysexit
+loc_00000395:  syscall
+loc_00000397:  sysret
+loc_00000399:  sgdt [eax]
+loc_0000039c:  sidt [eax]
+loc_0000039f:  lgdt [eax]
+loc_000003a2:  lidt [eax]
+loc_000003a5:  sldt word [eax]
+loc_000003a8:  sldt eax
+loc_000003ab:  lldt [eax]
+loc_000003ae:  smsw word [eax]
+loc_000003b1:  smsw eax
+loc_000003b4:  lmsw [eax]
+loc_000003b7:  str word [eax]
+loc_000003ba:  str eax
+loc_000003bd:  verr [eax]
+loc_000003c0:  verw [eax]
+loc_000003c3:  wbinvd
+loc_000003c5:  wrmsr
+loc_000003c7:  rdmsr
+loc_000003c9:  rdpmc
+loc_000003cb:  rdtsc
+loc_000003cd:  clts
+loc_000003cf:  cpuid
+loc_000003d1:  invd
+loc_000003d3:  invlpg [eax]
+loc_000003d6:  lar eax,eax
+loc_000003d9:  lar eax,word [eax]
+loc_000003dc:  lsl eax,eax
+loc_000003df:  lsl eax,word [eax]
+loc_000003e2:  ltr [eax]
+loc_000003e5:  mov eax,cr0
+loc_000003e8:  mov cr0,eax
+loc_000003eb:  mov eax,dr0
+loc_000003ee:  mov dr0,eax
+loc_000003f1:  les eax,[eax]
+loc_000003f3:  lds eax,[eax]
+loc_000003f5:  lss eax,[eax]
+loc_000003f8:  lfs eax,[eax]
+loc_000003fb:  lgs eax,[eax]
+loc_000003fe:  bsf eax,[eax]
+loc_00000401:  bsr eax,[eax]
+loc_00000404:  bt [eax],eax
+loc_00000407:  bt eax,eax
+loc_0000040a:  bt dword [eax],byte 0x11
+loc_0000040e:  bts dword [eax],eax
+loc_00000411:  lock bts dword [eax],eax
+loc_00000415:  bts dword [eax],byte 0x11
+loc_00000419:  lock bts dword [eax],byte 0x11
+loc_0000041e:  btr dword [eax],eax
+loc_00000421:  lock btr dword [eax],eax
+loc_00000425:  btr dword [eax],byte 0x11
+loc_00000429:  lock btr dword [eax],byte 0x11
+loc_0000042e:  btc dword [eax],eax
+loc_00000431:  lock btc dword [eax],eax
+loc_00000435:  btc dword [eax],byte 0x11
+loc_00000439:  lock btc dword [eax],byte 0x11
+loc_0000043e:  bswap eax
+loc_00000440:  cmpxchg [eax],al
+loc_00000443:  lock cmpxchg [eax],al
+loc_00000447:  cmpxchg [eax],eax
+loc_0000044a:  lock cmpxchg [eax],eax
+loc_0000044e:  cmpxchg8b [eax]
+loc_00000451:  lock cmpxchg8b [eax]
+loc_00000455:  movzx eax,byte [eax]
+loc_00000458:  movzx eax,word [eax]
+loc_0000045b:  movsx eax,byte [eax]
+loc_0000045e:  movsx eax,word [eax]
+loc_00000461:  shld [eax],eax,0x11
+loc_00000465:  shld [eax],eax,cl
+loc_00000468:  shrd [eax],eax,0x11
+loc_0000046c:  shrd [eax],eax,cl
+loc_0000046f:  xadd [eax],al
+loc_00000472:  lock xadd [eax],al
+loc_00000476:  xadd [eax],eax
+loc_00000479:  lock xadd [eax],eax
+loc_0000047d:  enter 0x1111,0x11
+loc_00000481:  leave
+loc_00000482:  hlt
+loc_00000483:  cli
+loc_00000484:  sti
+loc_00000485:  in al,0x11
+loc_00000487:  in eax,0x11
+loc_00000489:  in al,dx
+loc_0000048a:  in eax,dx
+loc_0000048b:  out 0x11,al
+loc_0000048d:  out 0x11,eax
+loc_0000048f:  out dx,al
+loc_00000490:  out dx,eax
+loc_00000491:  cmovo eax,[eax]
+loc_00000494:  cmovno eax,[eax]
+loc_00000497:  cmovc eax,[eax]
+loc_0000049a:  cmovnc eax,[eax]
+loc_0000049d:  cmovz eax,[eax]
+loc_000004a0:  cmovnz eax,[eax]
+loc_000004a3:  cmovbe eax,[eax]
+loc_000004a6:  cmova eax,[eax]
+loc_000004a9:  cmovs eax,[eax]
+loc_000004ac:  cmovns eax,[eax]
+loc_000004af:  cmovp eax,[eax]
+loc_000004b2:  cmovnp eax,[eax]
+loc_000004b5:  cmovl eax,[eax]
+loc_000004b8:  cmovge eax,[eax]
+loc_000004bb:  cmovle eax,[eax]
+loc_000004be:  cmovg eax,[eax]
+loc_000004c1:  emms
+loc_000004c3:  fxrstor [eax]
+loc_000004c6:  fxsave [eax]
+loc_000004c9:  push es
+loc_000004ca:  push cs
+loc_000004cb:  push ss
+loc_000004cc:  push ds
+loc_000004cd:  push fs
+loc_000004cf:  push gs
+loc_000004d1:  pop es
+loc_000004d2:  pop ss
+loc_000004d3:  pop ds
+loc_000004d4:  pop fs
+loc_000004d6:  pop gs
+loc_000004d8:  push eax
+loc_000004d9:  push dword 0x11111111
+loc_000004de:  push byte +0x11
+loc_000004e0:  push dword [eax]
+loc_000004e2:  pop eax
+loc_000004e3:  pop dword [eax]
+loc_000004e5:  mov es,[eax]
+loc_000004e7:  mov ss,[eax]
+loc_000004e9:  mov ds,[eax]
+loc_000004eb:  mov fs,[eax]
+loc_000004ed:  mov gs,[eax]
+loc_000004ef:  mov eax,es
+loc_000004f1:  mov eax,cs
+loc_000004f3:  mov eax,ss
+loc_000004f5:  mov eax,ds
+loc_000004f7:  mov eax,fs
+loc_000004f9:  mov eax,gs
+loc_000004fb:  mov word [eax],es
+loc_000004fd:  mov word [eax],cs
+loc_000004ff:  mov word [eax],ss
+loc_00000501:  mov word [eax],ds
+loc_00000503:  mov word [eax],fs
+loc_00000505:  mov word [eax],gs
+loc_00000507:  pushad
+loc_00000508:  popad
+loc_00000509:  pushfd
+loc_0000050a:  popfd
+loc_0000050b:  movsb
+loc_0000050c:  rep movsb
+loc_0000050e:  rep movsb
+loc_00000510:  movsd
+loc_00000511:  rep movsd
+loc_00000513:  rep movsd
+loc_00000515:  cmpsb
+loc_00000516:  repnz cmpsb
+loc_00000518:  repz cmpsb
+loc_0000051a:  cmpsd
+loc_0000051b:  repnz cmpsd
+loc_0000051d:  repz cmpsd
+loc_0000051f:  stosb
+loc_00000520:  rep stosb
+loc_00000522:  rep stosb
+loc_00000524:  stosd
+loc_00000525:  rep stosd
+loc_00000527:  rep stosd
+loc_00000529:  lodsb
+loc_0000052a:  rep lodsb
+loc_0000052c:  rep lodsb
+loc_0000052e:  lodsd
+loc_0000052f:  rep lodsd
+loc_00000531:  rep lodsd
+loc_00000533:  scasb
+loc_00000534:  repnz scasb
+loc_00000536:  repz scasb
+loc_00000538:  scasd
+loc_00000539:  repnz scasd
+loc_0000053b:  repz scasd
+loc_0000053d:  test [eax],al
+loc_0000053f:  test [eax],eax
+loc_00000541:  test al,0x11
+loc_00000543:  test eax,0x11111111
+loc_00000548:  test byte [eax],0x11
+loc_0000054b:  test dword [eax],0x11111111
+loc_00000551:  xchg [eax],al
+loc_00000553:  lock xchg [eax],al
+loc_00000556:  xchg [eax],eax
+loc_00000558:  lock xchg [eax],eax
+loc_0000055b:  nop
+loc_0000055c:  not byte [eax]
+loc_0000055e:  lock not byte [eax]
+loc_00000561:  not dword [eax]
+loc_00000563:  lock not dword [eax]
+loc_00000566:  neg byte [eax]
+loc_00000568:  lock neg byte [eax]
+loc_0000056b:  neg dword [eax]
+loc_0000056d:  lock neg dword [eax]
+loc_00000570:  inc eax
+loc_00000571:  inc byte [eax]
+loc_00000573:  lock inc byte [eax]
+loc_00000576:  inc dword [eax]
+loc_00000578:  lock inc dword [eax]
+loc_0000057b:  dec eax
+loc_0000057c:  dec byte [eax]
+loc_0000057e:  lock dec byte [eax]
+loc_00000581:  dec dword [eax]
+loc_00000583:  lock dec dword [eax]
+loc_00000586:  xlatb
+loc_00000587:  seto [eax]
+loc_0000058a:  setno [eax]
+loc_0000058d:  setc [eax]
+loc_00000590:  setnc [eax]
+loc_00000593:  setz [eax]
+loc_00000596:  setnz [eax]
+loc_00000599:  setbe [eax]
+loc_0000059c:  seta [eax]
+loc_0000059f:  sets [eax]
+loc_000005a2:  setns [eax]
+loc_000005a5:  setp [eax]
+loc_000005a8:  setnp [eax]
+loc_000005ab:  setl [eax]
+loc_000005ae:  setge [eax]
+loc_000005b1:  setle [eax]
+loc_000005b4:  setg [eax]
+loc_000005b7:  nop dword [eax]
+loc_000005ba:  salc
+loc_000005bb:  cwde
+loc_000005bc:  cdq
+loc_000005bd:  sahf
+loc_000005be:  lahf
+loc_000005bf:  cmc
+loc_000005c0:  clc
+loc_000005c1:  stc
+loc_000005c2:  cld
+loc_000005c3:  std
+loc_000005c4:  lea eax,[eax]
+loc_000005c6:  into
+loc_000005c7:  imul eax,[eax],0x11111111
+loc_000005cd:  imul eax,[eax],byte +0x11
+loc_000005d0:  imul eax,[eax]
+loc_000005d3:  imul byte [eax]
+loc_000005d5:  imul dword [eax]
+loc_000005d7:  mul byte [eax]
+loc_000005d9:  mul dword [eax]
+loc_000005db:  div byte [eax]
+loc_000005dd:  div dword [eax]
+loc_000005df:  idiv byte [eax]
+loc_000005e1:  idiv dword [eax]
+loc_000005e3:  int1
+loc_000005e4:  jo short $$+0x000005f7
+loc_000005e6:  jo near $$+0x111116fd
+loc_000005ec:  jno short $$+0x000005ff
+loc_000005ee:  jno near $$+0x11111705
+loc_000005f4:  jc short $$+0x00000607
+loc_000005f6:  jc near $$+0x1111170d
+loc_000005fc:  jnc short $$+0x0000060f
+loc_000005fe:  jnc near $$+0x11111715
+loc_00000604:  jz short $$+0x00000617
+loc_00000606:  jz near $$+0x1111171d
+loc_0000060c:  jnz short $$+0x0000061f
+loc_0000060e:  jnz near $$+0x11111725
+loc_00000614:  jbe short $$+0x00000627
+loc_00000616:  jbe near $$+0x1111172d
+loc_0000061c:  ja short $$+0x0000062f
+loc_0000061e:  ja near $$+0x11111735
+loc_00000624:  js short $$+0x00000637
+loc_00000626:  js near $$+0x1111173d
+loc_0000062c:  jns short $$+0x0000063f
+loc_0000062e:  jns near $$+0x11111745
+loc_00000634:  jp short $$+0x00000647
+loc_00000636:  jp near $$+0x1111174d
+loc_0000063c:  jnp short $$+0x0000064f
+loc_0000063e:  jnp near $$+0x11111755
+loc_00000644:  jl short $$+0x00000657
+loc_00000646:  jl near $$+0x1111175d
+loc_0000064c:  jge short $$+0x0000065f
+loc_0000064e:  jge near $$+0x11111765
+loc_00000654:  jle short $$+0x00000667
+loc_00000656:  jle near $$+0x1111176d
+loc_0000065c:  jg short $$+0x0000066f
+loc_0000065e:  jg near $$+0x11111775
+loc_00000664:  call near $$+0x1111177a
+loc_00000669:  call dword near [eax]
+loc_0000066b:  call dword 0x1111:0x11111111
+loc_00000672:  call dword far [eax]
+loc_00000674:  jmp near $$+0x1111178a
+loc_00000679:  jmp short $$+0x0000068c
+loc_0000067b:  jmp dword near [eax]
+loc_0000067d:  jmp dword 0x1111:0x11111111
+loc_00000684:  jmp dword far [eax]
+loc_00000686:  ret 0x1111
+loc_00000689:  ret
+loc_0000068a:  retf 0x1111
+loc_0000068d:  retf
+loc_0000068e:  int3
+loc_0000068f:  int 0x11
+loc_00000691:  iretd
+loc_00000692:  loopnz $$+0x000006a5
+loc_00000694:  loopz $$+0x000006a7
+loc_00000696:  loop $$+0x000006a9
+loc_00000698:  jecxz $$+0x000006ab
+loc_0000069a:  fxch st0
+loc_0000069c:  fst dword [eax]
+loc_0000069e:  fst qword [eax]
+loc_000006a0:  fst st0
+loc_000006a2:  fstp dword [eax]
+loc_000006a4:  fstp qword [eax]
+loc_000006a6:  fstp tword [eax]
+loc_000006a8:  fstp st0
+loc_000006aa:  fnstcw [eax]
+loc_000006ac:  fstcw [eax]
+loc_000006af:  fldcw [eax]
+loc_000006b1:  fld dword [eax]
+loc_000006b3:  fld qword [eax]
+loc_000006b5:  fld tword [eax]
+loc_000006b7:  fld st0
+loc_000006b9:  fmul dword [eax]
+loc_000006bb:  fmul qword [eax]
+loc_000006bd:  fmul st0,st0
+loc_000006bf:  fmul st0,st0
+loc_000006c1:  fmulp st0,st0
+loc_000006c3:  fimul dword [eax]
+loc_000006c5:  fimul word [eax]
+loc_000006c7:  wait
